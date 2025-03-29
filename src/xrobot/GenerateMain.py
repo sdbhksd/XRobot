@@ -62,32 +62,42 @@ def _format_cpp_value(value: Union[dict, list, str, int, float, bool]) -> str:
 
 
 def extract_constructor_args(modules: List[str], module_dir: Path, config_path: Path) -> Dict:
-    """Extract default arguments from modules and save to YAML config."""
+    """Extract default constructor_args for each module and save to YAML in list format."""
     output = {
         "global_settings": {
-            "monitor_sleep_ms": 1000  # 可根据需要设置默认值
+            "monitor_sleep_ms": 1000
         },
-        "modules": {}
+        "modules": []
     }
+
     for mod in modules:
         hpp_path = module_dir / mod / f"{mod}.hpp"
         if not hpp_path.exists():
+            print(f"[WARN] Header not found for module: {mod}")
             continue
 
         manifest = parse_manifest_from_header(hpp_path)
         args_raw = manifest.get("constructor_args", {})
         args_ordered = OrderedDict()
 
-        if isinstance(args_raw, (dict, list)):
-            args_ordered.update(
-                args_raw if isinstance(args_raw, dict) else {k: v for item in args_raw for k, v in item.items()})
+        if isinstance(args_raw, dict):
+            args_ordered.update(args_raw)
+        elif isinstance(args_raw, list):
+            for item in args_raw:
+                if isinstance(item, dict):
+                    args_ordered.update(item)
 
-        output["modules"][mod] = {"constructor_args": dict(args_ordered)}
+        # Append as new module instance
+        output["modules"].append({
+            "name": mod,
+            "constructor_args": dict(args_ordered)
+        })
 
     config_path.write_text(
         yaml.dump(output, sort_keys=False, allow_unicode=True, indent=2),
         encoding="utf-8"
     )
+
     return output
 
 
@@ -95,11 +105,11 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
     """Generate main application code with module instantiations."""
     sleep_ms = config.get("global_settings", {}).get("monitor_sleep_ms", 1000)
     headers = [
-                  '#include "app_framework.hpp"',
-                  '#include "libxr.hpp"',
-                  "",
-                  "// Module headers"
-              ] + [f'#include "{mod}.hpp"' for mod in modules]
+        '#include "app_framework.hpp"',
+        '#include "libxr.hpp"',
+        "",
+        "// Module headers"
+    ] + [f'#include "{mod}.hpp"' for mod in modules]
 
     body = [
         f"template <typename HardwareContainer>",
@@ -110,11 +120,26 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
         f"  // Auto-generated module instantiations",
     ]
 
-    for mod in modules:
-        args_dict = config.get("modules", {}).get(mod, {}).get("constructor_args", {})
+    module_entries = config.get("modules", [])
+    if not isinstance(module_entries, list):
+        raise TypeError("[ERROR] 'modules' must be a list of module instances")
+
+    instance_count = {}
+
+    for entry in module_entries:
+        mod = entry.get("name")
+        if mod not in modules:
+            continue
+
+        args_dict = entry.get("constructor_args", {})
         args_list = [_format_cpp_value(v) for _, v in args_dict.items()]
 
-        instance_line = f"  {mod}<HardwareContainer> {mod.lower()}({hw_var}, appmgr"
+        # Support for multiple instances of the same module
+        count = instance_count.get(mod, 0)
+        instance_name = f"{mod.lower()}{count}" if count > 0 else mod.lower()
+        instance_count[mod] = count + 1
+
+        instance_line = f"  {mod}<HardwareContainer> {instance_name}({hw_var}, appmgr"
         if args_list:
             instance_line += ", " + ", ".join(args_list)
         instance_line += ");"
