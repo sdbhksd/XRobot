@@ -7,8 +7,8 @@ CONFIG_TEMPLATE = """# XRobot module configuration example
 modules:
   - name: BlinkLED
     repo: https://github.com/xrobot-org/BlinkLED
+    version: master  # optional: branch name or tag
 """
-
 
 def execute_git_command(cmd: list[str], workdir: Path = None):
     """Execute git commands with error handling."""
@@ -17,20 +17,22 @@ def execute_git_command(cmd: list[str], workdir: Path = None):
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Git command failed: {' '.join(cmd)}\n{str(e)}")
 
-
-def sync_module(name: str, repo: str, base_dir: Path):
+def sync_module(name: str, repo: str, version: str, base_dir: Path):
     """Clone or update a module repository."""
     module_path = base_dir / name
 
-    # Update existing repository
     if module_path.exists() and (module_path / ".git").exists():
         print(f"[INFO] Updating module: {name}")
         execute_git_command(["git", "pull"], workdir=module_path)
-    # Clone new repository
+        if version:
+            execute_git_command(["git", "checkout", version], workdir=module_path)
     else:
         print(f"[INFO] Cloning new module: {name}")
-        execute_git_command(["git", "clone", repo, str(module_path)])
-
+        clone_cmd = ["git", "clone", "--recurse-submodules"]
+        if version:
+            clone_cmd += ["--branch", version]
+        clone_cmd += [repo, str(module_path)]
+        execute_git_command(clone_cmd)
 
 def load_configuration(config_path: Path) -> list[dict]:
     """Load module configuration from YAML file."""
@@ -43,7 +45,6 @@ def load_configuration(config_path: Path) -> list[dict]:
     with config_path.open(encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
     return config_data.get("modules", [])
-
 
 def main():
     """Main entry point for module synchronization."""
@@ -69,10 +70,10 @@ def main():
         if not all(key in module for key in ("name", "repo")):
             print(f"[WARN] Skipping invalid module entry: {module}")
             continue
-        sync_module(module["name"], module["repo"], module_dir)
+        version = module.get("version", None)
+        sync_module(module["name"], module["repo"], version, module_dir)
 
     print("[SUCCESS] All modules processed")
-
 
 if __name__ == "__main__":
     main()
