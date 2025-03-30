@@ -139,7 +139,7 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
         instance_name = f"{mod.lower()}{count}" if count > 0 else mod.lower()
         instance_count[mod] = count + 1
 
-        instance_line = f"  {mod}<HardwareContainer> {instance_name}({hw_var}, appmgr"
+        instance_line = f"  static {mod}<HardwareContainer> {instance_name}({hw_var}, appmgr"
         if args_list:
             instance_line += ", " + ", ".join(args_list)
         instance_line += ");"
