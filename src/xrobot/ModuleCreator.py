@@ -20,6 +20,8 @@ public:
     // auto dev = hw.template Find<LibXR::GPIO>("led");
   }}
 
+  void OnMonitor() override {{}}
+
 private:
 }};
 """
