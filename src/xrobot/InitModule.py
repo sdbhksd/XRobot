@@ -1,6 +1,8 @@
 import argparse
 import subprocess
 import yaml
+import tempfile
+import urllib.request
 from pathlib import Path
 
 CONFIG_TEMPLATE = """# XRobot module configuration example
@@ -34,17 +36,37 @@ def sync_module(name: str, repo: str, version: str, base_dir: Path):
         clone_cmd += [repo, str(module_path)]
         execute_git_command(clone_cmd)
 
-def load_configuration(config_path: Path) -> list[dict]:
-    """Load module configuration from YAML file."""
-    if not config_path.exists():
-        print(f"[WARN] Configuration file not found, creating template: {config_path}")
-        config_path.write_text(CONFIG_TEMPLATE, encoding="utf-8")
-        print("[INFO] Please edit the configuration file and rerun this script.")
-        return []
+from urllib.parse import urlparse
+
+def load_configuration(config_path_or_url: str, save_dir: Path) -> list[dict]:
+    """Load module configuration from a local file or remote URL, save as modules.yaml in target directory."""
+    if config_path_or_url.startswith("http://") or config_path_or_url.startswith("https://"):
+        print(f"[INFO] Downloading configuration from URL: {config_path_or_url}")
+        try:
+            with urllib.request.urlopen(config_path_or_url) as response:
+                content = response.read().decode("utf-8")
+        except Exception as e:
+            print(f"[ERROR] Failed to download config: {e}")
+            return []
+
+        save_path = save_dir / "modules.yaml"
+        save_path.write_text(content, encoding="utf-8")
+        print(f"[INFO] Configuration file saved to: {save_path}")
+
+        config_path = save_path
+    else:
+        config_path = Path(config_path_or_url)
+
+        if not config_path.exists():
+            print(f"[WARN] Configuration file not found, creating template: {config_path}")
+            config_path.write_text(CONFIG_TEMPLATE, encoding="utf-8")
+            print("[INFO] Please edit the configuration file and rerun this script.")
+            return []
 
     with config_path.open(encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
     return config_data.get("modules", [])
+
 
 def main():
     """Main entry point for module synchronization."""
@@ -58,11 +80,10 @@ def main():
                         help="Output directory for module repositories")
 
     args = parser.parse_args()
-    config_file = Path(args.config)
     module_dir = Path(args.directory)
     module_dir.mkdir(parents=True, exist_ok=True)
 
-    modules = load_configuration(config_file)
+    modules = load_configuration(args.config, module_dir)
     if not modules:
         return
 
