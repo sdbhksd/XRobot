@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrobot"
-version = "0.1.1"
-description = "A Python package for parsing IOC files and generating C++ code."
+version = "0.1.2"
+description = "A lightweight application framework for robot module management, lifecycle control, and hardware abstraction."
 requires-python = ">=3.8"
 authors = [
     {name = "Xiao", email = "2592509183@qq.com"}
