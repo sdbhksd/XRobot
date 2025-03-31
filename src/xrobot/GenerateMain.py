@@ -42,7 +42,7 @@ def parse_manifest_from_header(header_path: Path) -> Dict:
             print(f"[WARN] Unsupported constructor_args type: {type(raw_args)}")
 
         manifest_data['constructor_args'] = ordered_args
-
+    print(f"[INFO] Successfully parsed manifest for {header_path.stem}")
     return manifest_data
 
 
@@ -77,6 +77,11 @@ def extract_constructor_args(modules: List[str], module_dir: Path, config_path: 
             continue
 
         manifest = parse_manifest_from_header(hpp_path)
+
+        if not manifest:
+            print(f"[ERROR] Failed to parse manifest for {mod}")
+            continue
+
         args_raw = manifest.get("constructor_args", {})
         args_ordered = OrderedDict()
 
@@ -92,6 +97,8 @@ def extract_constructor_args(modules: List[str], module_dir: Path, config_path: 
             "name": mod,
             "constructor_args": dict(args_ordered)
         })
+
+    print(f"[INFO] Writing configuration to {config_path}")
 
     config_path.write_text(
         yaml.dump(output, sort_keys=False, allow_unicode=True, indent=2),
@@ -129,6 +136,7 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
     for entry in module_entries:
         mod = entry.get("name")
         if mod not in modules:
+            print(f"[WARN] Module {mod} not included in the provided list.")
             continue
 
         args_dict = entry.get("constructor_args", {})
@@ -159,7 +167,10 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
 
 def auto_discover_modules(modules_dir: Path = Path("Modules")) -> List[str]:
     """Discover available modules in directory."""
-    return [sub.name for sub in modules_dir.iterdir() if sub.is_dir() and (sub / f"{sub.name}.hpp").exists()]
+    discovered_modules = [sub.name for sub in modules_dir.iterdir() if sub.is_dir() and (sub / f"{sub.name}.hpp").exists()]
+    if not discovered_modules:
+        print("[WARN] No valid modules found in the Modules directory.")
+    return discovered_modules
 
 
 def main():
@@ -181,9 +192,13 @@ def main():
     if args.config:
         config_path = Path(args.config)
         if config_path.exists():
+            print(f"[INFO] Using existing configuration file: {config_path}")
             config_data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
         else:
+            print(f"[WARN] Configuration file not found: {config_path}")
             config_data = extract_constructor_args(args.modules, Path("Modules"), config_path)
+    else:
+        config_data = extract_constructor_args(args.modules, Path("Modules"), Path("User/xrobot.yaml"))
 
     # Code generation
     output_code = generate_xrobot_main_code(args.hw, args.modules, config_data)
