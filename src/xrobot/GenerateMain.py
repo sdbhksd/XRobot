@@ -1,8 +1,11 @@
+import re
 import yaml
 import argparse
 from pathlib import Path
 from collections import OrderedDict
 from typing import Union, Dict, List
+from yaml.representer import SafeRepresenter
+yaml.add_representer(OrderedDict, SafeRepresenter.represent_dict)
 
 
 def parse_manifest_from_header(header_path: Path) -> Dict:
@@ -56,7 +59,10 @@ def _format_cpp_value(value: Union[dict, list, str, int, float, bool]) -> str:
     elif isinstance(value, bool):
         return "true" if value else "false"
     elif isinstance(value, str):
-        return f'"{value}"'
+        if re.match(r"^[A-Za-z_][\w:<>\s,]*::[A-Za-z_][\w:]*$", value):
+            return value
+        else:
+            return f'"{value}"'
     else:
         return str(value)
 
@@ -93,10 +99,10 @@ def extract_constructor_args(modules: List[str], module_dir: Path, config_path: 
                     args_ordered.update(item)
 
         # Append as new module instance
-        output["modules"].append({
-            "name": mod,
-            "constructor_args": dict(args_ordered)
-        })
+        output["modules"].append(OrderedDict([
+            ("name", mod),
+            ("constructor_args", args_ordered)
+        ]))
 
     print(f"[INFO] Writing configuration to {config_path}")
 
@@ -198,7 +204,11 @@ def main():
             print(f"[WARN] Configuration file not found: {config_path}")
             config_data = extract_constructor_args(args.modules, Path("Modules"), config_path)
     else:
-        config_data = extract_constructor_args(args.modules, Path("Modules"), Path("User/xrobot.yaml"))
+        config_path = Path("User/xrobot.yaml")
+        if config_path.exists():
+            config_data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        else:
+            config_data = extract_constructor_args(args.modules, Path("Modules"), Path("User/xrobot.yaml"))
 
     # Code generation
     output_code = generate_xrobot_main_code(args.hw, args.modules, config_data)
