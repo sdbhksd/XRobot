@@ -17,11 +17,34 @@ XRobot is a suite of automated code generation tools for embedded systems (e.g.,
 
 ## 🔧 安装 / Installation
 
+### 使用pipx安装 (Install via `pipx`)
+
+windows
+
+```ps
+python -m pip install --user pipx
+python -m pipx ensurepath
+pipx install xrobot
+pipx ensurepath
+# Restart your terminal
+```
+
+linux
+
+```bash
+sudo apt install pipx
+pipx install xrobot
+pipx ensurepath
+# Restart your terminal
+```
+
+### 使用pip安装 (Install via `pip`)
+
 ```bash
 pip install xrobot
 ```
 
-或从源码安装：
+### 从源码安装 (Install from source)
 
 Or install from source:
 
