@@ -18,7 +18,7 @@ class Infantry {
   typedef struct Param {
     Module::RMChassis::Param chassis;
     Module::Gimbal::Param gimbal;
-    Module::Launcher::Param launcher;
+    Module::RMLauncher::Param launcher;
     Device::BMI088::Rotation bmi088_rot{};
     Device::Cap::Param cap{};
   } Param;
@@ -36,7 +36,7 @@ class Infantry {
 
   Module::RMChassis chassis_;
   Module::Gimbal gimbal_;
-  Module::Launcher launcher_;
+  Module::RMLauncher launcher_;
 
   Infantry(Param& param, float control_freq)
       : bmi088_(param.bmi088_rot),

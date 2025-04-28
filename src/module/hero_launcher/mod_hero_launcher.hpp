@@ -4,14 +4,10 @@
 
 #include "comp_actuator.hpp"
 #include "comp_cmd.hpp"
-#include "comp_filter.hpp"
-#include "comp_pid.hpp"
 #include "dev_referee.hpp"
 #include "dev_rm_motor.hpp"
-
+ /* 英雄发射机构代码仅有摩擦轮数量和转速参数有所不同 发射逻辑相同 */
 namespace Module {
-template <typename Motor, typename Motorparam, int Fric_num = 2,
-          int Trig_num = 1>
 class Launcher {
  public:
   /* 发射器运行模式 */
@@ -29,7 +25,7 @@ class Launcher {
     STOP,
   } TrigMode;
 
-  typedef enum { OPEN, CLOSE } CoverMode;
+
 
   typedef enum {
     CHANGE_FIRE_MODE_RELAX,
@@ -39,12 +35,24 @@ class Launcher {
 
     CHANGE_TRIG_MODE_SINGLE,
     CHANGE_TRIG_MODE_BURST,
+    CHANGE_TRIG_MODE_CONTINUED,
+    CHANGE_TRIG_MODE_STOP,
     CHANGE_TRIG_MODE,
-    LAUNCHER_STOP_TRIG,
-
-    OPEN_COVER,
-    CLOSE_COVER,
   } LauncherEvent;
+
+  enum {
+    LAUNCHER_ACTR_FRIC1_IDX = 0, /* 1号摩擦轮相关的索引值 */
+    LAUNCHER_ACTR_FRIC2_IDX,     /* 2号摩擦轮相关的索引值 */
+    LAUNCHER_ACTR_FRIC3_IDX,     /* 3号摩擦轮相关的索引值 */
+    LAUNCHER_ACTR_FRIC4_IDX,     /* 4号摩擦轮相关的索引值 */
+    LAUNCHER_ACTR_FRIC_NUM,      /* 总共的动作器数量 */
+  };
+
+  enum {
+    LAUNCHER_ACTR_TRIG_IDX, /* 拨弹电机相关的索引值 */
+    LAUNCHER_ACTR_TRIG_NUM, /* 总共的动作器数量 */
+  };
+
 
   typedef enum {
     LAUNCHER_MODEL_17MM = 0, /* 17mm发射机构 */
@@ -54,17 +62,16 @@ class Launcher {
   typedef struct {
     float num_trig_tooth;       /* 拨弹盘中一圈能存储几颗弹丸 */
     float trig_gear_ratio;      /* 拨弹电机减速比 3508:19, 2006:36 */
-    float fric_radius;          /* 摩擦轮半径，单位：米 */
-    float cover_open_duty;      /* 弹舱盖打开时舵机PWM占空比 */
-    float cover_close_duty;     /* 弹舱盖关闭时舵机PWM占空比 */
     Model model;                /* 发射机构型号 */
-    float default_bullet_speed; /* 默认弹丸初速度 */
     uint32_t min_launch_delay;  /* 最小发射间隔(1s/最大射频) */
+    bool allow_reverse;         /* 拨弹盘是否能反转 取决于机械 */
+    float fric_speed_1;         /* 一级摩擦轮转速 */
+    float fric_speed_2;         /* 二级摩擦轮转速 */
 
-    std::array<Component::PosActuator::Param, Trig_num> trig_actr;
-    std::array<Component::SpeedActuator::Param, Fric_num> fric_actr;
-    std::array<Motorparam, Trig_num> trig_param;
-    std::array<Motorparam, Fric_num> fric_param;
+    std::array<Component::PosActuator::Param, LAUNCHER_ACTR_TRIG_NUM> trig_actr;
+    std::array<Component::SpeedActuator::Param, LAUNCHER_ACTR_FRIC_NUM> fric_actr;
+    std::array<Device::RMMotor::Param, LAUNCHER_ACTR_TRIG_NUM> trig_motor;
+    std::array<Device::RMMotor::Param, LAUNCHER_ACTR_FRIC_NUM> fric_motor;
 
     const std::vector<Component::CMD::EventMapItem> EVENT_MAP;
   } Param;
@@ -83,7 +90,7 @@ class Launcher {
 
   struct FireControl {
     bool fire = false;
-    bool stall = false;
+    bool stall = true;
     uint32_t last_launch = 0; /* 上次发射器时间 单位：ms */
     bool last_fire = false;   /* 上次开火状态 */
     float last_trig_angle = 1.0f;
@@ -105,7 +112,7 @@ class Launcher {
 
   Launcher(Param &param, float control_freq);
 
-  std::array<float, 2> speed;
+
   void UpdateFeedback();
 
   void Control();
@@ -135,24 +142,24 @@ class Launcher {
 
   float trig_angle_ = 0.0f;
 
-  Param param_;
+  std::array<float, LAUNCHER_ACTR_FRIC_NUM> speed_; /* 方便调试 */
 
-  CoverMode cover_mode_ = CLOSE; /* 弹舱盖模式 */
+  Param param_;
 
   /* PID计算的目标值 */
   struct {
-    std::array<float, 2> fric_rpm_; /* 摩擦轮电机转速，单位：RPM */
+    std::array<float, LAUNCHER_ACTR_FRIC_NUM> fric_rpm_; /* 摩擦轮电机转速，单位：RPM */
     float trig_angle_ = 0.0f;       /* 拨弹电机角度，单位：弧度 */
   } setpoint_;
 
   HeatControl heat_ctrl_;
   FireControl fire_ctrl_;
 
-  std::array<Component::PosActuator *, Trig_num> trig_actuator_;
-  std::array<Component::SpeedActuator *, Fric_num> fric_actuator_;
+  std::array<Component::PosActuator *, LAUNCHER_ACTR_TRIG_NUM> trig_actuator_;
+  std::array<Component::SpeedActuator *, LAUNCHER_ACTR_FRIC_NUM> fric_actuator_;
 
-  std::array<Device::RMMotor *, Trig_num> trig_motor_;
-  std::array<Device::RMMotor *, Fric_num> fric_motor_;
+  std::array<Device::RMMotor *, LAUNCHER_ACTR_TRIG_NUM> trig_motor_;
+  std::array<Device::RMMotor *, LAUNCHER_ACTR_FRIC_NUM> fric_motor_;
 
   RefForLauncher ref_;
 
@@ -168,5 +175,4 @@ class Launcher {
 
   Component::UI::Arc arc_;
 };
-typedef class Launcher<Device::RMMotor, Device::RMMotor::Param> RMLauncher;
 }  // namespace Module

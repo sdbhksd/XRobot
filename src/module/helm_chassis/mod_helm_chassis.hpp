@@ -37,10 +37,10 @@ class HelmChassis {
   typedef enum {
     RELAX, /* 放松模式，电机不输出。一般情况底盘初始化之后的模式 */
     BREAK, /* 刹车模式，电机闭环控制保持静止。用于机器人停止状态 */
-    CHASSIS_FOLLOW_GIMBAL, /* 通过闭环控制使车头方向跟随云台 */
+    CHASSIS_FOLLOW_GIMBAL,      /* 通过闭环控制使车头方向跟随云台 */
     CHASSIS_6020_FOLLOW_GIMBAL, /*6020电机直接跟随车头方向*/
-    ROTOR, /* 小陀螺模式，通过闭环控制使底盘不停旋转 */
-    INDENPENDENT, /* 独立模式。底盘运行不受云台影响 */
+    ROTOR,                      /* 小陀螺模式，通过闭环控制使底盘不停旋转 */
+    INDENPENDENT,               /* 独立模式。底盘运行不受云台影响 */
   } Mode;
 
   typedef enum {
@@ -72,7 +72,6 @@ class HelmChassis {
     Device::Referee::Status status;
     float chassis_power_limit;
     float chassis_pwr_buff;
-    float chassis_watt;
   } RefForChassis;
 
   HelmChassis(Param &param, float control_freq);
