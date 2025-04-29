@@ -33,17 +33,6 @@ Robot::Simulator::Param param = {
       .cycle = true,
     },
 
-    .EVENT_MAP = {
-      Component::CMD::EventMapItem{
-        Device::TerminalController::STOP_CTRL,
-        Module::RMChassis::SET_MODE_RELAX
-      },
-      Component::CMD::EventMapItem{
-        Device::TerminalController::START_CTRL,
-        Module::RMChassis::SET_MODE_INDENPENDENT
-      },
-    },
-
     .actuator_param = {
       Component::SpeedActuator::Param{
         .speed = {
@@ -126,23 +115,15 @@ Robot::Simulator::Param param = {
           .model = Device::RMMotor::MOTOR_M3508,
       },
     },
-
-    .get_speed = [](float power_limit){
-      float speed = 0.0f;
-      if (power_limit <= 50.0f) {
-        speed = 5500;
-      } else if (power_limit <= 60.0f) {
-        speed = 5500;
-      } else if (power_limit <= 70.0f) {
-        speed = 5500;
-      } else if (power_limit <= 80.0f) {
-        speed = 6200;
-      } else if (power_limit <= 100.0f) {
-        speed = 7000;
-      } else {
-        speed = 7500;
-      }
-      return speed;
+        .EVENT_MAP = {
+      Component::CMD::EventMapItem{
+        Device::TerminalController::STOP_CTRL,
+        Module::RMChassis::SET_MODE_RELAX
+      },
+      Component::CMD::EventMapItem{
+        Device::TerminalController::START_CTRL,
+        Module::RMChassis::SET_MODE_INDENPENDENT
+      },
     },
   },
 };

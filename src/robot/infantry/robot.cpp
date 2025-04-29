@@ -26,33 +26,6 @@ Robot::Infantry::Param param = {
       .cycle = true,
     },
 
-    .EVENT_MAP = {
-      Component::CMD::EventMapItem{
-        Component::CMD::CMD_EVENT_LOST_CTRL,
-        Module::RMChassis::SET_MODE_RELAX
-      },
-      Component::CMD::EventMapItem{
-        Device::DR16::DR16_SW_L_POS_TOP,
-        Module::RMChassis::SET_MODE_RELAX
-      },
-      Component::CMD::EventMapItem{
-        Device::DR16::DR16_SW_L_POS_MID,
-        Module::RMChassis::SET_MODE_INDENPENDENT
-      },
-      Component::CMD::EventMapItem{
-        Device::DR16::DR16_SW_L_POS_BOT,
-        Module::RMChassis::SET_MODE_ROTOR
-      },
-      Component::CMD::EventMapItem{
-        Device::DR16::KEY_V,
-        Module::RMChassis::SET_MODE_ROTOR
-      },
-      Component::CMD::EventMapItem{
-        Device::DR16::KEY_B,
-        Module::RMChassis::SET_MODE_FOLLOW
-      }
-    },
-
     .actuator_param = {
       Component::SpeedActuator::Param{
         .speed = {
@@ -64,6 +37,7 @@ Robot::Infantry::Param param = {
           .out_limit = 1.0f,
           .d_cutoff_freq = -1.0f,
           .cycle = false,
+
         },
 
         .in_cutoff_freq = -1.0f,
@@ -151,22 +125,31 @@ Robot::Infantry::Param param = {
           .reverse = false
       },
     },
-    .get_speed = [](float power_limit){
-      float speed = 0.0f;
-    if (power_limit <= 50.0f) {
-      speed = 0.0f;
-    } else if (power_limit <= 60.0f) {
-      speed = 3800;
-    } else if (power_limit <= 70.0f) {
-      speed = 5000;
-    } else if (power_limit <= 80.0f) {
-      speed = 5500;
-    } else if (power_limit <= 100.0f) {
-      speed = 6000;
-    } else {
-      speed = 6500;
-    }
-      return speed;
+        .EVENT_MAP = {
+      Component::CMD::EventMapItem{
+        Component::CMD::CMD_EVENT_LOST_CTRL,
+        Module::RMChassis::SET_MODE_RELAX
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::DR16_SW_L_POS_TOP,
+        Module::RMChassis::SET_MODE_RELAX
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::DR16_SW_L_POS_MID,
+        Module::RMChassis::SET_MODE_INDENPENDENT
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::DR16_SW_L_POS_BOT,
+        Module::RMChassis::SET_MODE_ROTOR
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::KEY_V,
+        Module::RMChassis::SET_MODE_ROTOR
+      },
+      Component::CMD::EventMapItem{
+        Device::DR16::KEY_B,
+        Module::RMChassis::SET_MODE_FOLLOW
+      }
     },
   },
 
@@ -247,6 +230,64 @@ Robot::Infantry::Param param = {
 
         .out_cutoff_freq = -1.0f,
     },
+        .yaw_ai_actr = {
+      .speed = {
+          /* GIMBAL_CTRL_YAW_OMEGA_IDX */
+          .k = 0.28f,
+          .p = 1.f,
+          .i = 1.f,
+          .d = 0.f,
+          .i_limit = 0.2f,
+          .out_limit = 1.0f,
+          .d_cutoff_freq = -1.0f,
+          .cycle = false,
+        },
+
+        .position = {
+          /* GIMBAL_CTRL_YAW_ANGLE_IDX */
+          .k = 20.0f,
+          .p = 1.0f,
+          .i = 0.0f,
+          .d = 0.0f,
+          .i_limit = 0.0f,
+          .out_limit = 0.0f,
+          .d_cutoff_freq = -1.0f,
+          .cycle = true,
+        },
+
+        .in_cutoff_freq = -1.0f,
+
+        .out_cutoff_freq = -1.0f,
+    },
+    .pit_ai_actr = {
+        .speed = {
+          /* GIMBAL_CTRL_PIT_OMEGA_IDX */
+          .k = 0.25f,
+          .p = 1.0f,
+          .i = 0.f,
+          .d = 0.f,
+          .i_limit = 0.8f,
+          .out_limit = 0.0f,
+          .d_cutoff_freq = -1.0f,
+          .cycle = false,
+        },
+
+        .position = {
+          /* GIMBAL_CTRL_PIT_ANGLE_IDX */
+          .k = 20.0f,
+          .p = 1.0f,
+          .i = 0.0f,
+          .d = 0.0f,
+          .i_limit = 0.0f,
+          .out_limit = 10.0f,
+          .d_cutoff_freq = -1.0f,
+          .cycle = true,
+        },
+
+        .in_cutoff_freq = -1.0f,
+
+        .out_cutoff_freq = -1.0f,
+    },
 
     .yaw_motor = {
       .id_feedback = 0x209,
@@ -288,19 +329,19 @@ Robot::Infantry::Param param = {
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_MID,
-        Module::Gimbal::START_AUTO_AIM
+        Module::Gimbal::SET_MODE_AUTO_AIM
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_BOT,
-        Module::Gimbal::START_AUTO_AIM
+        Module::Gimbal::SET_MODE_AUTO_AIM
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_R_PRESS,
-        Module::Gimbal::START_AUTO_AIM
+        Module::Gimbal::SET_MODE_AUTO_AIM
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_R_RELEASE,
-        Module::Gimbal::STOP_AUTO_AIM
+        Module::Gimbal::SET_MODE_ABSOLUTE
       }
     },
 
@@ -312,7 +353,7 @@ Robot::Infantry::Param param = {
     .fric_radius = 0.03f,
     .cover_open_duty = 0.125f,
     .cover_close_duty = 0.075f,
-    .model = Module::Launcher::LAUNCHER_MODEL_17MM,
+    .model = Module::RMLauncher::LAUNCHER_MODEL_17MM,
     .default_bullet_speed = 15.f,
     .min_launch_delay = static_cast<uint32_t>(1000.0f / 20.0f),
 
@@ -381,7 +422,7 @@ Robot::Infantry::Param param = {
       },
     },
 
-    .trig_motor = {
+    .trig_param = {
       Device::RMMotor::Param{
         .id_feedback = 0x201,
         .id_control = M3508_M2006_CTRL_ID_BASE,
@@ -391,7 +432,7 @@ Robot::Infantry::Param param = {
       }
     },
 
-    .fric_motor = {
+    .fric_param = {
       Device::RMMotor::Param{
           .id_feedback = 0x203,
           .id_control = M3508_M2006_CTRL_ID_BASE,
@@ -411,39 +452,39 @@ Robot::Infantry::Param param = {
     .EVENT_MAP = {
       Component::CMD::EventMapItem{
         Component::CMD::CMD_EVENT_LOST_CTRL,
-        Module::Launcher::CHANGE_FIRE_MODE_RELAX
+        Module::RMLauncher::CHANGE_FIRE_MODE_RELAX
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_TOP,
-        Module::Launcher::CHANGE_FIRE_MODE_SAFE
+        Module::RMLauncher::CHANGE_FIRE_MODE_SAFE
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_MID,
-        Module::Launcher::CHANGE_FIRE_MODE_LOADED
+        Module::RMLauncher::CHANGE_FIRE_MODE_LOADED
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_BOT,
-        Module::Launcher::CHANGE_FIRE_MODE_LOADED
+        Module::RMLauncher::CHANGE_FIRE_MODE_LOADED
       },
       Component::CMD::EventMapItem{
         Device::DR16::DR16_SW_R_POS_BOT,
-        Module::Launcher::LAUNCHER_START_FIRE
+        Module::RMLauncher::LAUNCHER_START_FIRE
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_L_PRESS,
-        Module::Launcher::LAUNCHER_START_FIRE
+        Module::RMLauncher::LAUNCHER_START_FIRE
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_G,
-        Module::Launcher::CHANGE_TRIG_MODE
+        Module::RMLauncher::CHANGE_TRIG_MODE
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_R,
-        Module::Launcher::OPEN_COVER
+        Module::RMLauncher::OPEN_COVER
       },
       Component::CMD::EventMapItem{
         Device::DR16::KEY_F,
-        Module::Launcher::CLOSE_COVER
+        Module::RMLauncher::CLOSE_COVER
       }
     },
   }, /* launcher */

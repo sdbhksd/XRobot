@@ -152,7 +152,6 @@ void HelmChassis<Motor, MotorParam>::PraseRef() {
   this->ref_.chassis_power_limit =
       this->raw_ref_.robot_status.chassis_power_limit;
   this->ref_.chassis_pwr_buff = this->raw_ref_.power_heat.chassis_pwr_buff;
-  this->ref_.chassis_watt = this->raw_ref_.power_heat.chassis_watt;
   this->ref_.status = this->raw_ref_.status;
 }
 template <typename Motor, typename MotorParam>
