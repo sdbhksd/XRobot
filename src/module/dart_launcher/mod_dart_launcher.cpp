@@ -127,7 +127,6 @@ void DartLauncher::SetMode(Mode mode) {
       this->relax_ = false;
       this->setpoint_.fric_speed1 = 1.0f;
       this->setpoint_.fric_speed2 = 1.0f;
-      // this->setpoint_.rod_pos = 0.01f;
       break;
     case ADVANCE:
       this->relax_ = false;

@@ -16,7 +16,9 @@
 		"davidanson.vscode-markdownlint",
 		"marus25.cortex-debug",
 		"xyz.local-history",
-		"usernamehw.errorlens"
+		"usernamehw.errorlens",
+		"wayou.vscode-todo-highlight",
+		"gruntfuggly.todo-tree"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": []

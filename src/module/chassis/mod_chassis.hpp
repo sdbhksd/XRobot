@@ -28,17 +28,17 @@ class Chassis {
  public:
   /* 底盘运行模式 */
   typedef enum {
-    RELAX,         /* 放松模式，电机不输出。一般情况底盘初始化之后的模式 */
-    BREAK,         /* 刹车模式，电机闭环控制保持静止。用于机器人停止状态 */
+    RELAX, /* 放松模式，电机不输出。一般情况底盘初始化之后的模式 */
+    BREAK, /* 刹车模式，电机闭环控制保持静止。用于机器人停止状态 */
     FOLLOW_GIMBAL, /* 通过闭环控制使车头方向跟随云台 */
-    ROTOR,         /* 小陀螺模式，通过闭环控制使底盘不停旋转 */
-    INDENPENDENT,  /* 独立模式。底盘运行不受云台影响 */
+    ROTOR, /* 小陀螺模式，通过闭环控制使底盘不停旋转 */
+    INDENPENDENT, /* 独立模式。底盘运行不受云台影响 */
   } Mode;
 
-  typedef enum{
+  typedef enum {
     COMMON,
     BEAST,
-  }Power_Mode;
+  } Power_Mode;
 
   typedef enum {
     SET_MODE_RELAX,
@@ -54,16 +54,18 @@ class Chassis {
     float toque_coefficient_;
     float speed_2_coefficient_;
     float out_2_coefficient_;
-    float constant_; //功率参数不能封装一下吗
+    // TODO: 封装一下
+    float constant_;  // 功率参数不能封装一下吗
 
-    Component::Mixer::Mode type = Component::Mixer::MECANUM; /* 底盘类型，底盘的机械设计和轮子选型 */
+    Component::Mixer::Mode type =
+        Component::Mixer::MECANUM; /* 底盘类型，底盘的机械设计和轮子选型 */
     Component::PID::Param follow_pid_param{}; /* 跟随云台PID的参数 */
-    Component::PID::Param xaccl_pid_param{};   /* 加速跟随PID的参数 */
-    Component::PID::Param yaccl_pid_param{};   /* y方向加速跟随PID */
+    Component::PID::Param xaccl_pid_param{};  /* 加速跟随PID的参数 */
+    Component::PID::Param yaccl_pid_param{};  /* y方向加速跟随PID */
 
     std::array<Component::SpeedActuator::Param, 4> actuator_param{};
     std::array<MotorParam, 4> motor_param;
-  const std::vector<Component::CMD::EventMapItem> EVENT_MAP;
+    const std::vector<Component::CMD::EventMapItem> EVENT_MAP;
   } Param;
 
   typedef struct {
@@ -125,10 +127,10 @@ class Chassis {
   Component::Type::MoveVector move_vec_; /* 底盘实际的运动向量 */
 
   Component::PID follow_pid_; /* 跟随云台用的PID */
-  Component::PID xaccl_pid_;   /* x方向加速跟随PID */
-  Component::PID yaccl_pid_;   /* y方向加速跟随PID */
+  Component::PID xaccl_pid_;  /* x方向加速跟随PID */
+  Component::PID yaccl_pid_;  /* y方向加速跟随PID */
 
-  float max_power_limit_ ;
+  float max_power_limit_;
   struct {
     float *motor_rotational_speed; /* 电机转速的动态数组，单位：RPM */
   } setpoint_;

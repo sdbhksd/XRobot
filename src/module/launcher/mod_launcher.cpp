@@ -29,7 +29,8 @@ Launcher<Motor, Motorparam, Fric_num, Trig_num>::Launcher(Param& param,
 
   auto event_callback = [](LauncherEvent event, Launcher* launcher) {
     launcher->ctrl_lock_.Wait(UINT32_MAX);
-    switch (event) { /* 根据event设置模式 */
+    /* 根据event设置模式 */
+    switch (event) {
       case CHANGE_FIRE_MODE_RELAX:
         launcher->SetFireMode(static_cast<FireMode>(RELAX));
         break;
@@ -76,8 +77,8 @@ Launcher<Motor, Motorparam, Fric_num, Trig_num>::Launcher(Param& param,
   Component::CMD::RegisterEvent<Launcher*, LauncherEvent>(
       event_callback, this, this->param_.EVENT_MAP);
 
-  // bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
-  // bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO, this->param_.cover_close_duty);
+  bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
+  bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO, this->param_.cover_close_duty);
 
   auto launcher_thread = [](Launcher* launcher) {
     auto ref_sub = Message::Subscriber<Device::Referee::Data>("referee");
@@ -244,7 +245,7 @@ void Launcher<Motor, Motorparam, Fric_num, Trig_num>::Control() {
       for (size_t i = 0; i < Fric_num; i++) {
         this->fric_motor_[i]->Relax();
       }
-      // sp_pwm_stop(BSP_PWM_LAUNCHER_SERVO);
+      bsp_pwm_stop(BSP_PWM_LAUNCHER_SERVO);
       break;
 
     case SAFE:
@@ -271,15 +272,13 @@ void Launcher<Motor, Motorparam, Fric_num, Trig_num>::Control() {
       }
 
       /* 根据弹仓盖开关状态更新弹舱盖打开时舵机PWM占空比 */
-      // if (this->cover_mode_ == OPEN) {
-      //   bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
-      //   bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO,
-      //   this->param_.cover_open_duty);
-      // } else {
-      //   bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
-      //   bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO,
-      //   this->param_.cover_close_duty);
-      // }
+      if (this->cover_mode_ == OPEN) {
+        bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
+        bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO, this->param_.cover_open_duty);
+      } else {
+        bsp_pwm_start(BSP_PWM_LAUNCHER_SERVO);
+        bsp_pwm_set_comp(BSP_PWM_LAUNCHER_SERVO, this->param_.cover_close_duty);
+      }
       break;
   }
 }
@@ -379,7 +378,7 @@ float Launcher<Motor, Motorparam, Fric_num,
   } else if (heat_percent > 0.6f) {
     return 0.8f * 1000 / this->param_.min_launch_delay;
   } else {
-    return 1000 / this->param_.min_launch_delay;
+    return 1000.0f / this->param_.min_launch_delay;
   }
 }
 

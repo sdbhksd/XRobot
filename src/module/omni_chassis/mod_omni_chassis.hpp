@@ -150,7 +150,7 @@ class nOmniChassis {
   Component::PID xaccl_pid_;  /* x方向加速跟随PID */
   Component::PID yaccl_pid_;  /* y方向加速跟随PID */
 
-  float max_power_limit;
+  float max_power_limit_;
 
   System::Thread thread_;
 

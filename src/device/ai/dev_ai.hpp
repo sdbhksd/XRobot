@@ -134,9 +134,7 @@ class AI {
 
   /* angle record */
   float chassis_yaw_offset_ = 0;
-  // float gimbal_scan_start_angle_;
   Component::Type::Eulr eulr_;
-  // Component::Type::Quaternion quat_;
   Component::Type::CycleValue target_scan_angle_ = 0.0;
   struct {
     float yaw; /* 偏航角（Yaw angle） */

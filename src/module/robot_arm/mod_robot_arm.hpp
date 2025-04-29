@@ -24,6 +24,7 @@ class RobotArm {
     SAFE,
   } Mode;
 
+  // TODO: pinyin
   typedef enum {
     SET_MODE_RELAX,
     SET_MODE_WORK_TOP,

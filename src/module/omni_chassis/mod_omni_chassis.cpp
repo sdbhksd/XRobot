@@ -305,58 +305,16 @@ void nOmniChassis<Motor, MotorParam>::Control() {
       break;
 
     case nOmniChassis::FOLLOW_GIMBAL_INTERSECT:
-      //{
-      //   float direction = 0.0f;
-      //   /*双零点*/
-      //   if (this->yaw_ > M_PI_2) {
-      //     direction = 3.14158f;
-      //   }
-      //   if (this->yaw_ < -M_PI_2) {
-      //     direction = 3.14158f;
-      //   }
-      //   this->move_vec_.wz =
-      //       this->follow_pid_.Calculate(direction, this->yaw_, this->dt_);
-      //   clampf(&this->move_vec_.wz, -1.0f, 1.0f);
-      //   float move_scal_sum = fabs(this->move_vec_.vx) +
-      //                         fabs(this->move_vec_.vy) +
-      //                         fabs(this->move_vec_.wz);
-      //   if (move_scal_sum > 1.01f) {
-      //     this->move_vec_.vx =
-      //         this->move_vec_.vx * (1 - fabs(this->move_vec_.wz));
-      //     this->move_vec_.vy =
-      //         this->move_vec_.vy * (1 - fabs(this->move_vec_.wz));
-      //   }
-      // } break;
       this->move_vec_.wz =
           this->follow_pid_.Calculate(0.0f, this->yaw_, this->dt_);
       break;
     case nOmniChassis::FOLLOW_GIMBAL_CROSS: {
-      // float direction = 0.0f;
-      // /*双零点*/
-      // if (this->yaw_ > M_PI_2) {
-      //   direction = 3.14158f;
-      // }
-      // if (this->yaw_ < -M_PI_2) {
-      //   direction = 3.14158f;
-      // }
-      // this->move_vec_.wz = this->follow_pid_.Calculate(
-      //     direction, this->yaw_ - M_PI / 4.0f, this->dt_);
-      // clampf(&this->move_vec_.wz, -1.0f, 1.0f);
-      // float move_scal_sum = fabs(this->move_vec_.vx) +
-      //                       fabs(this->move_vec_.vy) +
-      //                       fabs(this->move_vec_.wz);
-      // if (move_scal_sum > 1.01f) {
-      //   this->move_vec_.vx =
-      //       this->move_vec_.vx * (1 - fabs(this->move_vec_.wz));
-      //   this->move_vec_.vy =
-      //       this->move_vec_.vy * (1 - fabs(this->move_vec_.wz));
-      // }
       this->move_vec_.wz = this->follow_pid_.Calculate(
           0.0f, this->yaw_ - M_PI / 4.0f, this->dt_);
     } break;
 
     case nOmniChassis::ROTOR: /* 小陀螺模式使底盘以一定速度旋转 */
-    {                         /* TODO 改成实际底盘速度 */
+    {                         /* TODO: 改成实际底盘速度 */
       this->move_vec_.wz = 1;
       // this->move_vec_.wz = this->wz_dir_mult_;
       float move_scal_sum = fabs(this->move_vec_.vx) +
@@ -406,15 +364,14 @@ void nOmniChassis<Motor, MotorParam>::Control() {
       }
 
       if (this->cmd_.z > 0.5) {
-        this->max_power_limit = 120;
+        this->max_power_limit_ = 120;
       } else {
-        this->max_power_limit = ref_.chassis_power_limit;
+        this->max_power_limit_ = ref_.chassis_power_limit;
       }
 
       for (unsigned i = 0; i < this->mixer_.len_; i++) {
         if (cap_.online_) {
-          // LimitChassisOutPower(this->max_power_limit, out_.motor3508_out,
-          //                      motor_speed_, this->mixer_.len_);
+          // TODO: 忘了删了
           LimitChassisOutPower(180, out_.motor3508_out, motor_speed_,
                                this->mixer_.len_);
           this->motor_[i]->Control(out_.motor3508_out[i]);
@@ -481,7 +438,7 @@ void nOmniChassis<Motor, MotorParam>::SetMode(nOmniChassis::Mode mode) {
   this->mode_ = mode;
 }
 
-/*慢速刷新*/
+/* 慢速刷新 */
 template <typename Motor, typename MotorParam>
 void nOmniChassis<Motor, MotorParam>::DrawUIStatic(
     nOmniChassis<Motor, MotorParam>* chassis) {

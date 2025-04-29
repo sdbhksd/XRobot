@@ -6,7 +6,6 @@
 using namespace Robot;
 
 /* clang-format off */
-//TODO: write your param
 Dart::Param param={
   .gimbal={
     .yaw_param={

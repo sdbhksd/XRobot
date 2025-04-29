@@ -19,8 +19,14 @@ AIM::AIM()
     aim->data_ready_.Post();
   };
 
+  auto rx_idle_callback = [](void* arg){
+    AIM *aim = static_cast<AIM *>(arg);
+    aim->data_ready_.Post();
+  };
+
   bsp_uart_register_callback(BSP_UART_AI, BSP_UART_RX_CPLT_CB, rx_cplt_callback,
                              this);
+  bsp_uart_register_callback(BSP_UART_AI, BSP_UART_IDLE_LINE_CB, rx_idle_callback, this);
 
   Component::CMD::RegisterController(this->cmd_tp_);
  auto ai_thread = [](AIM *aim) {
@@ -34,26 +40,19 @@ AIM::AIM()
 
         /* 接收上位机数据 */
         aim->StartRecv();
-        if (aim->data_ready_.Wait(0))
+        if (aim->data_ready_.Wait(10))
         {
             aim->PraseHost();
             aim->PackCMD();
         }
 
-        //发送数据给上位机
+        /* 发送数据给上位机 */
         aim->PackMCU();
         aim->StartTran();
-
-        System::Thread::Sleep(2);
      }
     };
     this->thread_.Create(ai_thread, this, "aim_thread", DEVICE_AI_TASK_STACK_DEPTH,
                        System::Thread::REALTIME);
-}
-
-double convert_to_0_to_2pi(double theta_prime) {
-  double theta = fmod(theta_prime + 2 * M_PI, 2 * M_PI);
-  return theta;
 }
 
 bool AIM::PackCMD() {
@@ -106,7 +105,7 @@ bool AIM::PraseHost() {
   return false;
 }
 
-double convert_to_minus_pi_to_pi(double theta) {
+float convert_to_minus_pi_to_pi(float theta) {
   while (theta > M_PI) {
     theta -= 2 * M_PI;
   }
@@ -141,7 +140,7 @@ bool AIM::StartTran()
     void *src = NULL;
     src = &(this->to_host_);
     memcpy(txbuf, src, len);
-    return bsp_uart_transmit(BSP_UART_AI, txbuf, len,false) == BSP_OK;
+    return bsp_uart_transmit(BSP_UART_AI, txbuf, len, false) == BSP_OK;
 }
 
 bool AIM::StartRecv()

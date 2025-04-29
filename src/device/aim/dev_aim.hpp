@@ -16,7 +16,7 @@ namespace Device {
 class AIM {
  public:
 
-  //MCU需要从上位机获取的数据
+  // TODO: 移动到protocol里面
   typedef struct __attribute__((packed)) RevforAI{
   uint8_t header = 0xA5;
   bool is_fire : 1;
@@ -28,7 +28,7 @@ class AIM {
   float pitch;
   float yaw;
   uint16_t checksum = 0;
-  }RefForAI_t;
+  } RefForAI_t;
 
   typedef struct __attribute__ ((packed)) TranToAI{
   uint8_t header = 0x5A;
@@ -118,6 +118,6 @@ class AIM {
 
   bool PackMCU();
 
-uint32_t last_online_time_ = 0;
+  uint32_t last_online_time_ = 0;
 };
 }  // namespace Device

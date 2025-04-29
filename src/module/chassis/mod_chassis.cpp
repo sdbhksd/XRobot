@@ -217,13 +217,6 @@ void Chassis<Motor, MotorParam>::Control() {
     case Chassis::FOLLOW_GIMBAL: /* 跟随模式通过PID控制使车头跟随云台*/
     {
       float direction = 0.0f;
-      // /*双零点*/
-      // if (this->yaw_ > M_PI_2) {
-      //   direction = 3.14158f;
-      // }
-      // if (this->yaw_ < -M_PI_2) {
-      //   direction = 3.14158f;
-      // }
       this->move_vec_.wz =
           this->follow_pid_.Calculate(direction, this->yaw_, this->dt_);
       clampf(&this->move_vec_.wz, -1.0f, 1.0f);
@@ -367,7 +360,7 @@ void Chassis<Motor, MotorParam>::SetMode(Chassis::Mode mode) {
 template <typename Motor, typename MotorParam>
 void Chassis<Motor, MotorParam>::ChangePowerlim(
     Chassis::Power_Mode power_mode) {
-  // TODO仔细研究正常模式和野兽模式的功率设置
+  // TODO: 仔细研究正常模式和野兽模式的功率设置
   if (power_mode == this->power_mode_) {
     return;
   } /* 模式未改变直接返回 */

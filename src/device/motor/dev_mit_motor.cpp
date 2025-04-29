@@ -3,6 +3,7 @@
 
 #include "bsp_time.h"
 
+// TODO: 加到Param里面
 #define P_MIN -12.5f
 #define P_MAX 12.5f
 #define V_MIN -45.0f
@@ -30,9 +31,8 @@ MitMotor::MitMotor(const Param &param, const char *name)
     : BaseMotor(name, param.reverse), param_(param) {
   auto rx_callback = [](Can::Pack &rx, MitMotor *motor) {
     if ((rx.data[0] & 0x0f) == motor->param_.id) {
-      // motor->recv_.Overwrite(rx);
       motor->last_online_time_ = bsp_time_get_ms();
-      motor->Decode(rx);
+      motor->recv_.Overwrite(rx);
     }
 
     return true;
@@ -49,12 +49,11 @@ MitMotor::MitMotor(const Param &param, const char *name)
     initd[this->param_.can] = true;
   }
 
-  // this->param_.feedback_id = this->param_.id;
   Message::Topic<Can::Pack> motor_tp(name);
-  // 订阅反馈消息
+  /* 订阅反馈消息 */
   Can::Subscribe(*MitMotor::mit_tp_[this->param_.can], this->param_.can,
                  this->param_.feedback_id, 1);
-  // 注册回调函数
+  /* 注册回调函数 */
   motor_tp.RegisterCallback(rx_callback, this);
 
   motor_tp.Link(*this->mit_tp_[this->param_.can]);
@@ -65,7 +64,6 @@ bool MitMotor::Update() {
 
   while (this->recv_.Receive(pack)) {
     this->Decode(pack);
-    last_online_time_ = bsp_time_get_ms();
   }
 
   return true;
@@ -102,8 +100,6 @@ void MitMotor::SetMit(float out) {
   tx_buff.data[7] = t_int & 0xff;
 
   Can::SendStdPack(this->param_.can, tx_buff);
-  // System::Thread::Sleep(100);
-  // this->Update();
 }
 
 void MitMotor::Decode(Can::Pack &rx) {
@@ -182,7 +178,6 @@ void MitMotor::SetPos(float pos) {
   tx_buff.data[7] = t_int & 0xff;
 
   Can::SendStdPack(this->param_.can, tx_buff);
-  // this->Update();
 }
 
 void MitMotor::Relax() {
@@ -198,12 +193,6 @@ bool MitMotor::Enable() {
   tx_buff.index = this->param_.id;
   memcpy(tx_buff.data, ENABLE_CMD, sizeof(ENABLE_CMD));
 
-  //  if (Can::SendStdPack(this->param_.can, tx_buff))
-  //  {
-  //   System::Thread::Sleep(50);
-  //   return true ;
-  //  }
-  //  return false;
   Can::SendStdPack(this->param_.can, tx_buff);
   System::Thread::Sleep(5);
   return true;

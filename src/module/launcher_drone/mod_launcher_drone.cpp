@@ -80,6 +80,7 @@ void DroneLauncher::Feedback() {
   float trig_pos_delta = this->trig_motor_[0]->GetAngle() - trig_pos_last;
   this->trig_pos_ += trig_pos_delta / this->param_.trig_gear_ratio;
 }
+
 void DroneLauncher::Control() {
   this->now_ = bsp_time_get();
   this->dt_ = TIME_DIFF(this->last_wakeup_, this->now_);
@@ -89,6 +90,7 @@ void DroneLauncher::Control() {
 
   this->TrigControl();
 }
+
 void DroneLauncher::FricControl() {
   switch (this->fricmode_) {
     case SAFE:
@@ -105,6 +107,7 @@ void DroneLauncher::FricControl() {
       break;
   }
 }
+
 void DroneLauncher::TrigControl() {
   switch (this->trigmode_) {
     case RELAX:
@@ -156,12 +159,14 @@ void DroneLauncher::TrigControl() {
       break;
   }
 }
+
 void DroneLauncher::SetFricMode(FricMode mode) {
   if (this->fricmode_ == mode) {
     return;
   }
   this->fricmode_ = mode;
 }
+
 void DroneLauncher::SetTrigMode(TrigMode mode) {
   if (this->trigmode_ == mode) {
     return;
@@ -186,6 +191,7 @@ void DroneLauncher::SetTrigMode(TrigMode mode) {
       break;
   }
 }
+
 void DroneLauncher::PraseRef() {
   memcpy(&(this->ref_.robot_status), &(raw_ref_.robot_status),
          sizeof(this->ref_.robot_status));

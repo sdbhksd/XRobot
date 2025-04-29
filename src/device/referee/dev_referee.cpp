@@ -102,10 +102,7 @@ Referee::Referee() : event_(Message::Event::FindEvent("cmd_event")) {
 
   auto ref_trans_thread = [](Referee *ref) {
     uint32_t last_online_time = bsp_time_get_ms();
-    // auto ai_sub =
-    // Message::Subscriber<SentryDecisionData>("sentry_cmd_for_ref");
     while (1) {
-      // ai_sub.DumpData(ref->data_from_sentry_);
       ref->Update(); /* 更新UI */
       ref->trans_thread_.SleepUntil(40, last_online_time);
     }
@@ -124,10 +121,10 @@ bool Referee::StartRecv() {
 
 void Referee::Prase() {
   this->ref_data_.status = RUNNING;
-  const size_t data_length = bsp_uart_get_count(BSP_UART_REF);
+  const size_t DATA_LENGTH = bsp_uart_get_count(BSP_UART_REF);
 
   const uint8_t *index = rxbuf; /* const 保护原始rxbuf不被修改 */
-  const uint8_t *const RXBUF_END = rxbuf + data_length;
+  const uint8_t *const RXBUF_END = rxbuf + DATA_LENGTH;
 
   while (index < RXBUF_END) {
     /* 1.处理帧头 */
@@ -311,7 +308,7 @@ void Referee::Prase() {
   this->ref_data_.power_heat.chassis_pwr_buff = REF_POWER_BUFF;
 #endif
 
-  memset(rxbuf, 0, data_length);
+  memset(rxbuf, 0, DATA_LENGTH);
 }
 
 bool Referee::Update() {

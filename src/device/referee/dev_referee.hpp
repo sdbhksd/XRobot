@@ -10,7 +10,7 @@
 #include "comp_ui.hpp"
 
 #define GAME_HEAT_INCREASE_42MM (100.0f) /* 每发射一颗42mm弹丸增加100热量 */
-#define GAME_HEAT_INCREASE_17MM (10.0f)  /* 每发射一颗17mm弹丸增加10热量 */
+#define GAME_HEAT_INCREASE_17MM (10.0f) /* 每发射一颗17mm弹丸增加10热量 */
 
 #define BULLET_SPEED_LIMIT_42MM (16.0)
 #define BULLET_SPEED_LIMIT_17MM (25.0)
@@ -74,8 +74,8 @@ class Referee {
     REF_CMD_ID_DART_CLIENT = 0x020A,
     REF_CMD_ID_ROBOT_POS_TO_SENTRY = 0X020B,
     REF_CMD_ID_RADAR_MARK = 0X020C,
-    REF_CMD_ID_SENTRY_DECISION = 0x020D,      /* 哨兵自主决策相关信息同步 */
-    REF_CMD_ID_RADAR_DECISION = 0x020E,       /* 雷达自主决策相关信息同步 */
+    REF_CMD_ID_SENTRY_DECISION = 0x020D, /* 哨兵自主决策相关信息同步 */
+    REF_CMD_ID_RADAR_DECISION = 0x020E, /* 雷达自主决策相关信息同步 */
     REF_CMD_ID_INTER_STUDENT = 0x0301,        /* 机器人交互数据 */
     REF_CMD_ID_INTER_STUDENT_CUSTOM = 0x0302, /* 自定义控制器和机器人 */
     REF_CMD_ID_CLIENT_MAP = 0x0303,
@@ -133,7 +133,6 @@ class Referee {
     uint32_t blood_supply_before_status : 1;
     uint32_t blood_supply_inner_status : 1;
     uint32_t blood_supply_status_RMUL : 1;
-    // uint32_t energy_mech_activation_status : 1;
     uint32_t energy_mech_small_status : 1;
     uint32_t energy_mech_big_status : 1;
     uint32_t highland_center : 2;
@@ -502,7 +501,8 @@ class Referee {
     struct __attribute__((packed)) {
       Header frame_header;
       uint16_t cmd_id;
-      Referee::InterStudentHeader student_header;  // 字命令、发送者、接受者
+      /* 字命令、发送者、接受者 */
+      Referee::InterStudentHeader student_header;
     } raw;
   };
 
@@ -516,9 +516,9 @@ class Referee {
   } SentryDecisionData;
 
   typedef struct __attribute__((packed)) {
-    Header frame_header;  // 0x0301
+    Header frame_header; /* 0x0301 */
     uint16_t cmd_id;
-    Referee::InterStudentHeader student_header;  // 含0x0120
+    Referee::InterStudentHeader student_header; /* 含0x0120 */
     uint32_t data_cmd;
     uint16_t crc16;
   } SentryPack;
@@ -601,11 +601,12 @@ class Referee {
 
   Message::Event event_;
 
+  // NOLINTBEGIN
   static UIPack ui_pack_;
 
   static SentryPack sentry_pack_;
 
   static Referee *self_;
-  SentryDecisionData data_from_sentry_;
+  // NOLINTEND
 };
 }  // namespace Device

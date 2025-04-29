@@ -43,7 +43,7 @@ class DartLauncher {
  private:
   System::Semaphore ctrl_lock_;
   System::Thread thread_;
-  Param& param_;
+  Param& param_;  // NOLINT
   Setpoint setpoint_;
 
   float dt_;

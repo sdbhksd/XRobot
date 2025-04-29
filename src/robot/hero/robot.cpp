@@ -380,14 +380,12 @@ Robot::Hero::Param param = {
     .allow_reverse = true,
     .fric_speed_1 = 4700,
     .fric_speed_2 = 5690,
+
     /* 新launcher參數 */
-
-
-
     .trig_actr = {
       Component::PosActuator::Param{
         .speed = {
-          .k = 8.0f,//8
+          .k = 8.0f,
           .p = 1.1f,
           .i = 0.f,
           .d = 0.f,

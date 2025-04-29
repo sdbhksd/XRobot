@@ -62,10 +62,6 @@ Gimbal::Gimbal(Param& param, float control_freq)
       gimbal->ctrl_lock_.Post();
 
       gimbal->yaw_tp_.Publish(gimbal->yaw_);
-      gimbal->pit_tp_.Publish(gimbal->pit_);
-      gimbal->alpha_tp_.Publish(gimbal->alpha_);
-      gimbal->eulr_yaw1_tp_.Publish(gimbal->eulr_yaw1_);
-      gimbal->tan_pit_tp_.Publish(gimbal->tan_pit_);
 
       /* 运行结束，等待下一次唤醒 */
       gimbal->thread_.SleepUntil(2, last_online_time);
@@ -85,91 +81,22 @@ void Gimbal::UpdateFeedback() {
   this->yaw_motor_.Update();
 
   this->yaw_ = this->yaw_motor_.GetAngle() - this->param_.mech_zero.yaw;
-  this->eulr_yaw1_ = eulr_.yaw;
-  this->pit_ = atan(
-      sqrt(tan(ChangeAngleRange(eulr_.pit) -
-               (this->pit_motor_.GetAngle() - this->param_.mech_zero.pit)) *
-               tan(ChangeAngleRange(eulr_.pit) -
-                   (this->pit_motor_.GetAngle() - this->param_.mech_zero.pit)) +
-           tan(eulr_.rol) * tan(eulr_.rol)));
-  this->alpha_ = this->GetAlpha();
-  this->slope_angle_ = this->pit_ * 180 / M_PI;
+
   this->yaw_motor_value_ = this->yaw_motor_.GetAngle().Value();
   this->pit_motor_value_ = this->pit_motor_.GetAngle().Value();
-
-  this->tan_pit_ =
-      tan(ChangeAngleRange(eulr_.pit) -
-          (this->pit_motor_.GetAngle() - this->param_.mech_zero.pit));
-  this->tan_rol_ = tan(ChangeAngleRange(eulr_.rol));
-  this->test_angle_3_ = ChangeAngleRange(eulr_.pit);
-  // this->tan_yaw_ = -(this->yaw_motor_.GetAngle().Value() -
-  // this->param_.mech_zero.yaw) +
-  //  ChangeAngleRange(eulr_.yaw);
-  this->test_angle_4_ = RotateVector3D(static_cast<float>(this->test_angle_3_),
-                                       static_cast<float>(this->tan_pit_),
-                                       static_cast<float>(this->tan_rol_));
-}
-
-double Gimbal::GetAlpha() {
-  if (this->tan_rol_ > 0 && this->tan_pit_ > 0) {
-    this->alpha_ = ((this->tan_rol_ * this->tan_rol_) /
-                    (tan(this->pit_) * tan(this->pit_))) *
-                   M_PI_2;
-  } else if (this->tan_rol_ > 0 && this->tan_pit_ < 0) {
-    this->alpha_ =
-        M_PI -
-        ((tan_rol_ * tan_rol_) / (tan(this->pit_) * tan(this->pit_))) * M_PI_2;
-  } else if (this->tan_rol_ < 0 && this->tan_pit_ < 0) {
-    this->alpha_ =
-        M_PI +
-        ((tan_rol_ * tan_rol_) / (tan(this->pit_) * tan(this->pit_))) * M_PI_2;
-  } else if (this->tan_rol_ < 0 && this->tan_pit_ > 0) {
-    this->alpha_ =
-        2 * M_PI -
-        ((tan_rol_ * tan_rol_) / (tan(this->pit_) * tan(this->pit_))) * M_PI_2;
-  }
-  return this->alpha_;
 }
 
 float Gimbal::ChangeAngleRange(float angle) {
-  angle = fmod(angle, 2 * M_PI);
+  angle = fmodf(angle, 2 * M_PI);
   if (angle < 0) {
     angle += 2 * M_PI;
   }
-  // 将角度从 [0, 2π] 转换到 [-π, π]
+  /* 将角度从 [0, 2π] 转换到 [-π, π] */
   if (angle > M_PI) {
     angle -= 2 * M_PI;
   }
 
   return angle;
-}
-
-float Gimbal::RotateVector3D(float x, float y, float z) {
-  float cos_x = cosf(x);
-  float sin_x = sinf(x);
-  float cos_y = cosf(y);
-  float sin_y = sinf(y);
-  float cos_z = cosf(z);
-  float sin_z = sinf(z);
-  float angle = 0.0f;
-  rotation_mat_[0][0] = cos_x * cos_y;
-  rotation_mat_[0][1] = -sin_x * cos_z + cos_x * sin_y * sin_z;
-  rotation_mat_[0][2] = sin_x * cos_z + cos_x * sin_y * cos_z;
-  rotation_mat_[1][0] = sin_x * cos_y;
-  rotation_mat_[1][1] = cos_x * cos_z + sin_x * sin_y * sin_z;
-  rotation_mat_[1][2] = -cos_x * sin_z + sin_x * sin_y * cos_z;
-  rotation_mat_[2][0] = -sin_y;
-  rotation_mat_[2][1] = cos_y * sin_z;
-  rotation_mat_[2][2] = cos_y * cos_z;
-  angle = atan(-sqrt(rotation_mat_[0][2] * rotation_mat_[0][2] +
-                     rotation_mat_[1][2] * rotation_mat_[1][2]) /
-               rotation_mat_[2][2]);
-  return angle;
-  // return {{{cos_x * cos_y, -sin_x * cos_z + cos_x * sin_y * sin_z,
-  //           sin_x * cos_z + cos_x * sin_y * cos_z},
-  //          {sin_x * cos_y, cos_x * cos_z + sin_x * sin_y * sin_z,
-  //           -cos_x * sin_z + sin_x * sin_y * cos_z},
-  //          {-sin_y, cos_y * sin_z, cos_y * cos_z}}};
 }
 
 void Gimbal::Control() {
@@ -261,24 +188,10 @@ void Gimbal::SetMode(Mode mode) {
   this->pit_actuator_.Reset();
   this->yaw_actuator_.Reset();
 
+  /* 切换模式后重置设定值 */
   memcpy(&(this->setpoint_.eulr_), &(this->eulr_),
-         sizeof(this->setpoint_.eulr_)); /* 切换模式后重置设定值 */
+         sizeof(this->setpoint_.eulr_));
   this->setpoint_.eulr_.yaw = this->eulr_.yaw;
-  // if (this->mode_ == RELAX) {
-  //   if (mode == ABSOLUTE) {
-  //     this->setpoint_.eulr_.yaw = this->eulr_.yaw;
-  //   }
-  // }
-  // if (this->mode_ == ABSOLUTE) {
-  //   if (mode == AI_CONTROL) {
-  //     this->setpoint_.eulr_.yaw = this->eulr_.yaw;
-  //   }
-  // }
-  // if (this->mode_ == AI_CONTROL) {
-  //   if (mode == ABSOLUTE) {
-  //     this->setpoint_.eulr_.yaw = this->eulr_.yaw;
-  //   }
-  // }
   this->mode_ = mode;
 }
 

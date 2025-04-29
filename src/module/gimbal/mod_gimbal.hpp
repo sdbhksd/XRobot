@@ -80,10 +80,6 @@ class Gimbal {
 
   void GetSlopeAngle();
 
-  float RotateVector3D(float x, float y, float z);
-
-  double GetAlpha();
-
  private:
   uint64_t last_wakeup_ = 0;
 
@@ -119,23 +115,9 @@ class Gimbal {
   Message::Topic<float> yaw_tp_ = Message::Topic<float>("chassis_yaw");
   Message::Topic<float> eulr_tp_ = Message::Topic<float>("ahrs_eulr");
   Message::Topic<float> quat_tp_ = Message::Topic<float>("ahrs_quat");
-  Message::Topic<float> pit_tp_ = Message::Topic<float>("chassis_pitch");
-  Message::Topic<double> alpha_tp_ = Message::Topic<double>("chassis_alpha");
-  Message::Topic<float> eulr_yaw1_tp_ =
-      Message::Topic<float>("chassis_eulr_yaw1"); /* 首次云台偏航角 */
-  Message::Topic<double> tan_pit_tp_ =
-      Message::Topic<double>("chassis_tan_pit");
 
   float yaw_;
   float pit_;
-  double alpha_;
-  double slope_angle_;
-  float eulr_yaw1_;
-  double tan_pit_;
-  // Component::Type::CycleValue test_angle_2_;
-  double tan_rol_;
-  double test_angle_3_;
-  float test_angle_4_;
 
   float rotation_mat_[3][3];
 

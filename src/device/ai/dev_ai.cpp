@@ -24,7 +24,7 @@ AI::AI(bool autoscan_enable)
     AI *ai = static_cast<AI *>(arg);
     ai->data_ready_.Post();
   };
-
+  // TODO: AUTOAIM和AI串口接收都要加idle回调
   bsp_uart_register_callback(BSP_UART_AI, BSP_UART_RX_CPLT_CB, rx_cplt_callback,
                              this);
 
@@ -59,9 +59,7 @@ AI::AI(bool autoscan_enable)
       ai->ai_tp_.Publish(ai->cmd_for_ref_);
 
       /* 发送数据到上位机 */
-      // quat_sub.DumpData(ai->quat_);
       ai->PackMCU();
-
       ai->StartTrans();
 
       System::Thread::Sleep(2);
@@ -201,9 +199,10 @@ void AI::DecideAction() {
   }
 
   /* 发射机构行为 */
-  if (this->notice_ == 2) { /* 开火 */
+  // TODO: notice应该按位与，防止命令冲突
+  if (this->notice_ == AI_NOTICE_FIRE) { /* 开火 */
     this->action_.ai_launcher = AI::Action::FIRE;
-  } else if (this->notice_ == 5) {
+  } else if (this->notice_ == AI_NOTICE_AUTO_AIM) {
     this->action_.ai_launcher = AI::Action::CEASEFIRE; /* 不发弹 */
   }
 }
@@ -241,35 +240,23 @@ bool AI::PackCMD() {
         case SCANF:
           /*yaw轴旋转加入随机数扰动*/
           static float smoothed_random =
-              0.0f;            // 静态变量，用于存储平滑后的随机值
-          float alpha = 0.1f;  // 平滑系数，控制新随机值的影响程度
+              0.0f; /* 静态变量，用于存储平滑后的随机值 */
+          float alpha = 0.1f; /* 平滑系数，控制新随机值的影响程度 */
           float raw_random =
-              static_cast<float>(rand() % 10 - 5) / 1000.0f;  // 原始随机扰动
+              static_cast<float>(rand() % 10 - 5) / 1000.0f; /* 原始随机扰动 */
           smoothed_random = alpha * raw_random +
-                            (1.0f - alpha) * smoothed_random;  // 低通滤波
+                            (1.0f - alpha) * smoothed_random; /* 低通滤波 */
           float yaw_rate = this->scanf_mode_.scanf_yaw_rate;
           this->target_scan_angle_ += yaw_rate * (1.0f + smoothed_random);
-          // this->cmd_.gimbal.eulr.yaw = this->target_scan_angle_;
           this->cmd_.gimbal.eulr.yaw = this->eulr_.yaw;
 
           float t = static_cast<float>(bsp_time_get_ms()) / 1000.0f;
-          // float pit_phase =
-          //     fmodf(t * this->scanf_mode_.scanf_pit_omega, 2.0f * M_PI);
-          // // 三角波输出范围 [0, 1]
-          // float triangle_wave =
-          //     (pit_phase < M_PI ? pit_phase / M_PI
-          //                       : (2.0f * M_PI - pit_phase) / M_PI);
-          // float mapped_triangle_wave = 2.0f * triangle_wave - 1.0f;
-          // // 计算俯仰角
-          // this->cmd_.gimbal.eulr.pit =
-          //     this->scanf_mode_.scanf_pit_center +
-          //     this->scanf_mode_.scanf_pit_range * mapped_triangle_wave;
 
-          /*计算三角波*/
+          /* 计算三角波 */
           float phase =
               fmodf(t * this->scanf_mode_.scanf_pit_omega, 2.0f * M_PI);
           float triangle_wave_mapped =
-              (fabsf(phase / M_PI - 1.0f) * 2.0f) - 1.0f;
+              (fabsf(phase / static_cast<float>(M_PI) - 1.0f) * 2.0f) - 1.0f;
           this->cmd_.gimbal.eulr.pit =
               this->scanf_mode_.scanf_pit_center +
               this->scanf_mode_.scanf_pit_range * triangle_wave_mapped;
@@ -340,14 +327,14 @@ bool AI::PackCMD() {
 }
 
 void AI::PraseRef() {
+// TODO: 错误的射速
 #if RB_HERO
-  this->ref_.ball_speed = BULLET_SPEED_LIMIT_42MM
+  this->ref_.ball_speed = BULLET_SPEED_LIMIT_42MM;
 #else
   this->ref_.ball_speed = BULLET_SPEED_LIMIT_17MM;
 #endif
 
-                          this->ref_.max_hp =
-      this->raw_ref_.robot_status.max_hp;
+  this->ref_.max_hp = this->raw_ref_.robot_status.max_hp;
 
   this->ref_.hp = this->raw_ref_.robot_status.remain_hp;
 
@@ -397,12 +384,11 @@ void AI::PraseRef() {
 
   this->ref_.game_progress = this->raw_ref_.game_status.game_progress;
 
+  // TODO: game_robot_hp只有哨兵？
   if (this->raw_ref_.robot_status.robot_id < 100) {
     this->ref_.base_hp = this->raw_ref_.game_robot_hp.red_base;
     this->ref_.outpost_hp = this->raw_ref_.game_robot_hp.red_outpose;
     this->ref_.hp = this->raw_ref_.game_robot_hp.red_7;
-    // this->ref_.hp = 400;
-
   } else {
     this->ref_.base_hp = this->raw_ref_.game_robot_hp.blue_base;
     this->ref_.outpost_hp = this->raw_ref_.game_robot_hp.blue_outpose;
