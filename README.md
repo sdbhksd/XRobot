@@ -108,12 +108,12 @@ This tool automatically detects the operation type (repo or local module) and wr
 # 添加模块仓库
 # Add module repo  
 # (default to Modules/modules.yaml)
-python xrobot_add_mod.py https://github.com/yourorg/BlinkLED.git --version main
+xrobot_add_mod https://github.com/yourorg/BlinkLED.git --version main
 
 # 追加模块实例
 # Append module instance
 # (default to User/xrobot.yaml)
-python xrobot_add_mod.py BlinkLED
+xrobot_add_mod BlinkLED
 ```
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
@@ -132,8 +132,9 @@ python xrobot_add_mod.py BlinkLED
 
 #### 📤 输出结果 / Output
 
-- 添加模块仓库  
+- 添加模块仓库 Add module repo  
   会将如下内容添加到 `Modules/modules.yaml`：  
+  It will add the following to `Modules/modules.yaml`:
 
   ```yaml
   modules:
@@ -142,8 +143,9 @@ python xrobot_add_mod.py BlinkLED
       version: main
   ```
 
-- 追加模块实例  
+- 追加模块实例 Append module instance  
   自动读取模块头文件中的构造参数，并将如下内容追加到 `User/xrobot.yaml`：  
+  It will append the following to `User/xrobot.yaml`:
 
   ```yaml
   modules:
@@ -255,8 +257,8 @@ xrobot_init_mod --config my_config.yaml --directory MyModules
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
 - `--config`, `-c`  
-  指定模块配置文件路径或 URL。默认为 `modules.yaml`。  
-  Path or URL to the module configuration file. Default is `modules.yaml`.
+  指定模块配置文件路径或 URL。默认为 `Modules/modules.yaml`。  
+  Path or URL to the module configuration file. Default is `Modules/modules.yaml`.
 
 - `--directory`, `-d`  
   指定模块仓库下载目录，默认为 `Modules/`。  
@@ -302,8 +304,8 @@ xrobot_gen_main -o main.cpp -m BlinkLED Motor IMU --config User/xrobot.yaml
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
 - `--output`, `-o`  
-  **必填**，生成的 C++ 文件路径。  
-  **Required**. Output path of generated C++ file.
+  生成的 C++ 文件路径，默认为 `User/xrobot_main.hpp`。  
+  Output path of generated C++ file, default is `User/xrobot_main.hpp`.
 
 - `--modules`, `-m`  
   可选，指定模块名列表；若未指定，则自动扫描 `Modules/` 目录下的模块。  

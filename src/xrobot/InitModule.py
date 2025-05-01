@@ -74,7 +74,7 @@ def main():
         description="XRobot module synchronization tool",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--config", "-c", default="modules.yaml",
+    parser.add_argument("--config", "-c", default="Modules/modules.yaml",
                         help="Path to module configuration file")
     parser.add_argument("--directory", "-d", default="Modules",
                         help="Output directory for module repositories")

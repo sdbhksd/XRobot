@@ -106,6 +106,8 @@ def extract_constructor_args(modules: List[str], module_dir: Path, config_path: 
 
     print(f"[INFO] Writing configuration to {config_path}")
 
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
     config_path.write_text(
         yaml.dump(output, sort_keys=False, allow_unicode=True, indent=2),
         encoding="utf-8"
@@ -181,7 +183,7 @@ def auto_discover_modules(modules_dir: Path = Path("Modules")) -> List[str]:
 
 def main():
     parser = argparse.ArgumentParser(description="XRobot code generation tool")
-    parser.add_argument("-o", "--output", required=True, help="Output CPP file path")
+    parser.add_argument("-o", "--output", default='User/xrobot_main.hpp', help="Output CPP file path")
     parser.add_argument("-m", "--modules", nargs="+", default=[], help="List of modules to include")
     parser.add_argument("--hw", default="hw", help="Hardware container variable name")
     parser.add_argument("-c", "--config", help="Configuration file path")
@@ -212,7 +214,9 @@ def main():
 
     # Code generation
     output_code = generate_xrobot_main_code(args.hw, args.modules, config_data)
-    Path(args.output).write_text(output_code, encoding="utf-8")
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(output_code, encoding="utf-8")
     print(f"[SUCCESS] Generated entry file: {args.output}")
 
 
