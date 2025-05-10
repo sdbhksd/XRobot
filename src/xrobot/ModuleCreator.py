@@ -12,7 +12,6 @@ module_description: {description}
 
 #include "app_framework.hpp"
 
-template <typename HardwareContainer>
 class {module_name} : public LibXR::Application {{
 public:
   {constructor_signature} {{
@@ -51,7 +50,7 @@ def create_module(module_name: str,
     repo_line = f"repository: {repository}\n" if repository else ""
 
     # Constructor signature template
-    constructor_signature = f"{module_name}(HardwareContainer &hw, LibXR::ApplicationManager &app)"
+    constructor_signature = f"{module_name}(LibXR::HardwareContainer &hw, LibXR::ApplicationManager &app)"
 
     # Generate header file
     hpp_code = HEADER_TEMPLATE.format(

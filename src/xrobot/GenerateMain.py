@@ -127,8 +127,7 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
     ] + [f'#include "{mod}.hpp"' for mod in modules]
 
     body = [
-        f"template <typename HardwareContainer>",
-        f"static void XRobotMain(HardwareContainer &{hw_var}) {{",
+        f"static void XRobotMain(LibXR::HardwareContainer &{hw_var}) {{",
         f"  using namespace LibXR;",
         f"  ApplicationManager appmgr;",
         f"",
@@ -155,7 +154,7 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
         instance_name = f"{mod.lower()}{count}" if count > 0 else mod.lower()
         instance_count[mod] = count + 1
 
-        instance_line = f"  static {mod}<HardwareContainer> {instance_name}({hw_var}, appmgr"
+        instance_line = f"  static {mod} {instance_name}({hw_var}, appmgr"
         if args_list:
             instance_line += ", " + ", ".join(args_list)
         instance_line += ");"
