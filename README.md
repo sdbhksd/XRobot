@@ -9,6 +9,7 @@
 [![Documentation](https://img.shields.io/badge/docs-online-brightgreen)](https://xrobot-org.github.io/)
 [![GitHub Issues](https://img.shields.io/github/issues/xrobot-org/XRobot)](https://github.com/xrobot-org/XRobot/issues)
 [![CI/CD - Python Package](https://github.com/xrobot-org/XRobot/actions/workflows/python-publish.yml/badge.svg)](https://github.com/xrobot-org/XRobot/actions/workflows/python-publish.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot?ref=badge_shield)
 
 XRobot 是一套为嵌入式系统（如 STM32）设计的自动化代码生成工具，配合模块化硬件抽象层 LibXR 使用，支持模块仓库管理、构造参数配置、C++ 主函数生成等任务。  
 XRobot is a suite of automated code generation tools for embedded systems (e.g., STM32), designed to work with the modular hardware abstraction layer LibXR. It supports tasks such as module repository management, constructor configuration, and C++ main function generation.
@@ -723,3 +724,6 @@ It does not include any drivers or business logic by itself. Instead, it focuses
 ## 📄 License
 
 Apache 2.0 License. © xrobot-org authors.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot?ref=badge_large)
