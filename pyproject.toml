@@ -44,6 +44,7 @@ xrobot_create_mod = "xrobot.ModuleCreator:main"
 xrobot_init_mod = "xrobot.InitModule:main"
 xrobot_setup = "xrobot.XRobotSetup:main"
 xrobot_add_mod = "xrobot.AddModule:main"
+xrobot_src_man = "xrobot.SourceManager:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
