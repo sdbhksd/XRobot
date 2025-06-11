@@ -1,3 +1,4 @@
+
 # XRobot 自动代码生成工具集 / XRobot Auto Code Generation Toolkit
 
 <h1 align="center">
@@ -59,18 +60,29 @@ pip install .
 
 ## 🧩 功能总览 / Features Overview
 
-- 模块仓库拉取与同步  
-Clone and update module repositories
-- 模块构造参数提取与配置  
-Extract and configure constructor arguments
-- 自动生成 `XRobotMain()` 主入口函数  
-Auto-generate `XRobotMain()` main entry
-- 模块头文件中的 manifest 解析器  
-Manifest parser from header files
-- 模块快速生成器（含 CMake 和 README）  
-Module skeleton generator (with CMake & README)
-- 支持本地或远程 YAML 配置  
-Support local or remote YAML config
+- **模块仓库拉取与同步**  
+  自动拉取并同步模块仓库，支持递归依赖项解析与版本一致性检查。  
+  *Clone and update module repositories with recursive dependency resolution and version consistency checks.*
+
+- **模块构造参数提取与配置**  
+  自动解析模块头文件中的构造参数与模板参数，生成 YAML 配置文件并支持手动调整。  
+  *Extract constructor and template arguments from module headers, generating adjustable YAML configuration files.*
+
+- **自动生成 `XRobotMain()` 主入口函数**  
+  根据模块配置文件自动生成 C++ 主入口函数，支持多模块、多实例和嵌套参数结构。  
+  *Auto-generate `XRobotMain()` entry function from module configuration, supporting multiple modules, instances, and nested argument structures.*
+
+- **模块头文件中的 manifest 解析器**  
+  支持详细解析模块清单（manifest），提取模块描述、依赖关系、构造参数与模板参数。  
+  *Comprehensive parser for module manifests from header files, extracting descriptions, dependencies, constructor, and template arguments.*
+
+- **模块快速生成器（含 CMake 和 README）**  
+  一键快速生成符合标准化结构的模块目录，自动包含模块头文件、README 文档及 CMakeLists 构建文件。  
+  *Rapid generation of standardized module directories with automatic creation of headers, README, and CMakeLists files.*
+
+- **支持本地或远程 YAML 配置**  
+  支持加载本地或远程的 YAML 配置文件，统一管理模块仓库和实例配置，便于跨环境使用。  
+  *Support for loading local or remote YAML configuration files, enabling unified module repository and instance management across environments.*
 
 ---
 
@@ -80,109 +92,95 @@ Support local or remote YAML config
 
 The following commands can be run after installation:
 
-| 命令 Command        | 说明                         | Description                         |
-| ------------------- | ---------------------------- | ----------------------------------- |
-| `xrobot_add_mod`    | 添加模块仓库或模块实例       | Add repo or append module config    |
-| `xrobot_init_mod`   | 拉取并同步所有模块仓库       | Clone and sync all module repos     |
-| `xrobot_gen_main`   | 生成 C++ 主函数              | Generate main C++ entry source file |
-| `xrobot_create_mod` | 创建模块模板                 | Create a new module folder & header |
-| `xrobot_mod_parser` | 解析模块并打印 manifest 信息 | Parse and show module manifest      |
-| `xrobot_setup`      | 一键配置模块 + 生成主函数    | One-click setup & generate main     |
+| 命令 Command        | 说明                             | Description                                        |
+| ------------------- | -------------------------------- | -------------------------------------------------- |
+| `xrobot_gen_main`   | 自动生成 C++ 主函数              | Generate main C++ entry source file                |
+| `xrobot_mod_parser` | 解析模块并打印 manifest 信息     | Parse and show module manifest                     |
+| `xrobot_create_mod` | 快速创建标准化模块目录           | Create a new module folder & header                |
+| `xrobot_init_mod`   | 拉取并递归同步所有模块仓库       | Clone and recursively sync all module repos        |
+| `xrobot_setup`      | 一键初始化工作区和生成主函数     | One-click workspace setup & main function generate |
+| `xrobot_add_mod`    | 添加模块仓库或追加模块实例到配置 | Add repo or append module instance config          |
+| `xrobot_src_man`    | 多源模块仓库管理与索引工具       | Multi-source module repository management utility  |
 
 ---
 
 ### `xrobot_add_mod`
 
-该工具根据输入目标（Git 仓库 URL 或模块名）自动判断操作类型，分别将模块信息写入：
+该工具根据输入目标（Git 仓库 `namespace/ModuleName[@version]` 或本地模块名）自动判断操作类型，分别将模块仓库记录写入 `Modules/modules.yaml`，或将模块实例信息追加至 `User/xrobot.yaml`。
 
-- `Modules/modules.yaml`（模块仓库配置）
-- `User/xrobot.yaml`（模块实例配置）
+This tool automatically detects whether the input is a repo (e.g. `namespace/ModuleName[@version]`) or a local module name, and writes to:
 
-This tool automatically detects the operation type (repo or local module) and writes to:
-
-- `Modules/modules.yaml` for module repositories
+- `Modules/modules.yaml` for module repositories  
 - `User/xrobot.yaml` for module instance configurations
 
 #### 🚀 使用方法 / Usage
 
 ```bash
-# 添加模块仓库
-# Add module repo  
-# (default to Modules/modules.yaml)
-xrobot_add_mod https://github.com/yourorg/BlinkLED.git --version main
+# 添加模块仓库（写入 Modules/modules.yaml）
+xrobot_add_mod xrobot-org/BlinkLED@master
 
-# 追加模块实例
-# Append module instance
-# (default to User/xrobot.yaml)
+# 追加模块实例（写入 User/xrobot.yaml）
 xrobot_add_mod BlinkLED
 ```
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
 - `target`  
-  位置参数，Git 仓库地址或模块名。  
-  Positional argument: Git repo URL or local module name.
-
-- `--version`, `-v`  
-  可选，指定仓库的分支或标签，仅在 `target` 为 URL 时有效。  
-  Optional version (branch or tag), valid only when target is a repo URL.
+  位置参数。模块仓库 ID（如 `namespace/ModuleName[@version]`），或本地模块名。  
+  Positional argument: Module repo ID (e.g., `namespace/ModuleName[@version]`) or local module name.
 
 - `--config`, `-c`  
-  可选，指定 YAML 配置文件路径。模块仓库默认写入 `Modules/modules.yaml`，模块实例默认写入 `User/xrobot.yaml`。  
+  可选，指定 YAML 配置文件路径。添加仓库时默认为 `Modules/modules.yaml`，添加实例时默认为 `User/xrobot.yaml`。  
   Optional config file path. Defaults to `Modules/modules.yaml` for repos or `User/xrobot.yaml` for instances.
+
+- `--instance-id`  
+  可选，手动指定模块实例 ID，若不指定则自动编号（如 `BlinkLED_0`, `BlinkLED_1`）。  
+  Optional: Manually set module instance id. If omitted, auto-increment ids like `BlinkLED_0`, `BlinkLED_1` will be used.
 
 #### 📤 输出结果 / Output
 
-- 添加模块仓库 Add module repo  
-  会将如下内容添加到 `Modules/modules.yaml`：  
-  It will add the following to `Modules/modules.yaml`:
+- **添加模块仓库（Add module repo）**  
+  会将如下内容（纯字符串）添加到 `Modules/modules.yaml`：  
+  It will add the following entry to `Modules/modules.yaml`:
 
   ```yaml
   modules:
-    - name: BlinkLED
-      repo: https://github.com/yourorg/BlinkLED.git
-      version: main
+    - xrobot-org/BlinkLED@main
   ```
 
-- 追加模块实例 Append module instance  
-  自动读取模块头文件中的构造参数，并将如下内容追加到 `User/xrobot.yaml`：  
-  It will append the following to `User/xrobot.yaml`:
+- **追加模块实例（Append module instance）**  
+  自动读取该模块的 manifest，提取构造参数和模板参数，自动分配唯一 id，并将如下内容追加到 `User/xrobot.yaml`：  
+  It reads the module manifest, extracts constructor/template args, auto-assigns unique id, and appends the following to `User/xrobot.yaml`:
 
   ```yaml
   modules:
-    - name: BlinkLED
+    - id: BlinkLED_0
+      name: BlinkLED
       constructor_args:
-        your_arg_name_here: <default or empty>
+        blink_cycle: 250
+  ```
+
+  如有模板参数，则格式如下：
+
+  ```yaml
+  modules:
+    - id: MyModule_0
+      name: MyModule
+      constructor_args:
+        foo: bar
+      template_args:
+        T: int
   ```
 
 #### 示例 / Example
 
-MODULES/module_name/module_name.hpp
+MODULES/BlinkLED/BlinkLED.hpp
 
 ```cpp
 /* === MODULE MANIFEST ===
-module_name: BMI088
-module_description: 博世 BMI088 6 轴惯性测量单元（IMU）的驱动模块 / Driver module for Bosch BMI088 6-axis Inertial Measurement Unit (IMU)
+module_name: BlinkLED
 constructor_args:
-  - rotation:
-      w: 1.0
-      x: 0.0
-      y: 0.0
-      z: 0.0
-  - pid_param:
-      k: 1.0
-      p: 0.0
-      i: 0.0
-      d: 0.0
-      i_limit: 0.0
-      out_limit: 0.0
-      cycle: false
-  - gyro_topic_name: "bmi088_gyro"
-  - accl_topic_name: "bmi088_accl"
-  - target_temperature: 45
-  - task_stack_depth: 512
-required_hardware: spi_bmi088/spi1/SPI1 bmi088_accl_cs bmi088_gyro_cs bmi088_accl_int bmi088_gyro_int pwm_bmi088_heat ramfs database
-repository: https://github.com/xrobot-org/BMI088
+  - blink_cycle: 250
 === END MANIFEST === */
 ```
 
@@ -190,50 +188,18 @@ modules.yaml
 
 ```yaml
 modules:
-- name: BlinkLED
-  repo: https://github.com/xrobot-org/BlinkLED
-- name: BMI088
-  repo: https://github.com/xrobot-org/BMI088
-- name: MadgwickAHRS
-  repo: https://github.com/xrobot-org/MadgwickAHRS
+  - xrobot-org/BlinkLED@main
+  - xrobot-org/OtherModule
 ```
 
 User/xrobot.yaml
 
 ```yaml
-global_settings:
-  monitor_sleep_ms: 1000
 modules:
-- name: BlinkLED
-  constructor_args:
-    blink_cycle: 250
-- name: BMI088
-  constructor_args:
-    rotation:
-      w: 1.0
-      x: 0.0
-      y: 0.0
-      z: 0.0
-    pid_param:
-      k: 0.15
-      p: 1.0
-      i: 0.1
-      d: 0.0
-      i_limit: 0.3
-      out_limit: 1.0
-      cycle: false
-    gyro_topic_name: bmi088_gyro
-    accl_topic_name: bmi088_accl
-    target_temperature: 45
-    task_stack_depth: 512
-- name: MadgwickAHRS
-  constructor_args:
-    beta: 0.033
-    gyro_topic_name: bmi088_gyro
-    accl_topic_name: bmi088_accl
-    quaternion_topic_name: ahrs_quaternion
-    euler_topic_name: ahrs_euler
-    task_stack_depth: 512
+  - id: BlinkLED_0
+    name: BlinkLED
+    constructor_args:
+      blink_cycle: 250
 ```
 
 ---
@@ -261,6 +227,10 @@ xrobot_init_mod --config my_config.yaml --directory MyModules
   指定模块配置文件路径或 URL。默认为 `Modules/modules.yaml`。  
   Path or URL to the module configuration file. Default is `Modules/modules.yaml`.
 
+- `--sources`, `-s`  
+  指定源索引（sources.yaml）路径，默认为 `Modules/sources.yaml`。  
+  Path to sources.yaml for module indexes. Default is `Modules/sources.yaml`.
+
 - `--directory`, `-d`  
   指定模块仓库下载目录，默认为 `Modules/`。  
   Output directory for module repositories. Default is `Modules/`.
@@ -271,8 +241,10 @@ xrobot_init_mod --config my_config.yaml --directory MyModules
   If the configuration file does not exist, a template will be generated.
 - 若模块目录不存在，执行 `git clone --recurse-submodules`  
   If the module directory does not exist, `git clone --recurse-submodules` is executed.
-- 若模块已存在，进入目录后执行 `git pull`，并根据配置切换分支（如果提供 `version` 字段）  
-  If the module exists, enter the directory and execute `git pull`, and switch branches if a `version` field is provided.
+- 若模块已存在，进入目录后执行 `git fetch --all` 和 `git pull`，并根据配置切换分支（如果提供 `@version` 字段）  
+  If the module exists, enter the directory and execute `git fetch --all` and `git pull`, and switch branches if a `@version` field is provided.
+- 自动递归解析依赖关系，确保依赖模块也被拉取且版本一致  
+  Recursively resolves dependencies to ensure all required modules are cloned and version-consistent.
 - 每个模块最终存储在 `<output_directory>/<module_name>` 路径中  
   Each module is stored at `<output_directory>/<module_name>`.
 
@@ -282,12 +254,14 @@ xrobot_init_mod --config my_config.yaml --directory MyModules
 [INFO] Cloning new module: BlinkLED
 [EXEC] git clone --recurse-submodules --branch main https://github.com/xrobot-org/BlinkLED Modules/BlinkLED
 
-[SUCCESS] All modules processed
+[SUCCESS] All modules and their dependencies processed.
 ```
+
+---
 
 ### `xrobot_gen_main`
 
-该工具用于根据模块清单和构造参数配置文件，自动生成 C++ 入口函数 `XRobotMain()`，支持嵌套参数、重复实例、多模块构造。  
+该工具用于根据模块清单和构造参数配置文件，自动生成 C++ 入口函数 `XRobotMain()`，支持嵌套参数、重复实例、多模块构造。
 This tool generates a C++ entry function `XRobotMain()` based on the module list and configuration file, supporting nested args, multiple instances, and module composition.
 
 #### 🚀 使用方法 / Usage
@@ -304,33 +278,33 @@ xrobot_gen_main -o main.cpp -m BlinkLED Motor IMU --config User/xrobot.yaml
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
-- `--output`, `-o`  
-  生成的 C++ 文件路径，默认为 `User/xrobot_main.hpp`。  
+- `--output`, `-o`
+  生成的 C++ 文件路径，默认为 `User/xrobot_main.hpp`。
   Output path of generated C++ file, default is `User/xrobot_main.hpp`.
 
-- `--modules`, `-m`  
-  可选，指定模块名列表；若未指定，则自动扫描 `Modules/` 目录下的模块。  
+- `--modules`, `-m`
+  可选，指定模块名列表；若未指定，则自动扫描 `Modules/` 目录下的模块。
   Optional. List of module names to include. If omitted, auto-discovered from `Modules/`.
 
-- `--hw`  
-  可选，指定硬件容器变量名，默认为 `hw`。  
+- `--hw`
+  可选，指定硬件容器变量名，默认为 `hw`。
   Optional. Hardware container variable name. Default: `hw`.
 
-- `--config`, `-c`  
-  可选，指定构造参数 YAML 文件；若文件不存在，则自动生成。  
+- `--config`, `-c`
+  可选，指定构造参数 YAML 文件；若文件不存在，则自动生成。
   Optional. Path to constructor configuration file. Will be created if not found.
 
 #### 📤 输出结果 / Output
 
-- 若未指定 `--config`，将扫描模块头文件中的 `/* === MODULE MANIFEST === */` 区块并生成默认 YAML  
+- 若未指定 `--config`，将扫描模块头文件中的 `/* === MODULE MANIFEST === */` 区块并生成默认 YAML
   If `--config` is not specified, will scan for `/* === MODULE MANIFEST === */` block and generate default YAML.
-- 生成一个包含 `XRobotMain()` 函数的 `.hpp` 或 `.cpp` 文件  
+- 生成一个包含 `XRobotMain()` 函数的 `.hpp` 或 `.cpp` 文件
   Generates a `.hpp` or `.cpp` file containing the `XRobotMain()` function.
-- 每个模块按 `static ModuleName<HardwareContainer> name(hw, appmgr, ...);` 格式实例化  
+- 每个模块按 `static ModuleName<HardwareContainer> name(hw, appmgr, ...);` 格式实例化
   Each module is instantiated as `static ModuleName<HardwareContainer> name(hw, appmgr, ...);`
-- 支持自动添加头文件  
+- 支持自动添加头文件
   Support for automatically adding header files
-- 主循环使用 `appmgr.MonitorAll()` 与 `Thread::Sleep()`  
+- 主循环使用 `appmgr.MonitorAll()` 与 `Thread::Sleep()`
   Main loop uses `appmgr.MonitorAll()` and `Thread::Sleep()`
 
 输出代码示例 / Output Code Example：
@@ -361,9 +335,11 @@ static void XRobotMain(HardwareContainer &hw) {
 }
 ```
 
+---
+
 ### `xrobot_create_mod`
 
-该工具用于快速创建一个符合 XRobot 模块规范的目录结构，包含头文件、README、CMake 配置等，便于模块开发初始化。  
+该工具用于快速创建一个符合 XRobot 模块规范的目录结构，包含头文件、README、CMake 配置等，便于模块开发初始化。
 This tool quickly scaffolds a new XRobot module with standard files including header, README, and CMake setup, to accelerate module development.
 
 #### 🚀 使用方法 / Usage
@@ -376,7 +352,7 @@ xrobot_create_mod MyModule --desc "LED blinker" --hw led button --repo https://g
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
-- `module_name`  
+- `class_name`  
   **必填**，模块名称，必须与目录名一致。  
   **Required**. Module name, must match folder name.
 
@@ -388,6 +364,18 @@ xrobot_create_mod MyModule --desc "LED blinker" --hw led button --repo https://g
   所需硬件逻辑接口名列表。默认空。  
   List of required logical hardware interfaces. Default: empty.
 
+- `--constructor`  
+  构造参数列表，格式如 `id=foo gpio=LED`。可选。  
+  List of constructor args, e.g., `id=foo gpio=LED`. Optional.
+
+- `--template`  
+  模板参数列表，格式如 `T=int U=double`。可选。  
+  List of template args, e.g., `T=int U=double`. Optional.
+
+- `--depends`  
+  依赖模块名列表。可选。  
+  List of dependent modules. Optional.
+
 - `--repo`  
   GitHub 仓库地址（可选）。  
   GitHub repository URL (optional).
@@ -398,7 +386,7 @@ xrobot_create_mod MyModule --desc "LED blinker" --hw led button --repo https://g
 
 #### 📂 生成结构 / Generated Structure
 
-假设模块名为 `BlinkLED`，会生成以下文件结构：  
+假设模块名为 `BlinkLED`，会生成以下文件结构：
 If the module name is `BlinkLED`, the following structure will be generated:
 
 ```text
@@ -409,9 +397,11 @@ Modules/
     └── CMakeLists.txt      # 构建配置 / Build configuration
 ```
 
+---
+
 ### `xrobot_mod_parser`
 
-该工具用于解析 XRobot 模块头文件中的 `MODULE MANIFEST`，提取模块的描述、构造参数、所需硬件等信息，并格式化输出。  
+该工具用于解析 XRobot 模块头文件中的 `MODULE MANIFEST`，提取模块的描述、构造参数、所需硬件等信息，并格式化输出。
 This tool parses the `MODULE MANIFEST` block in XRobot module header files, extracting the module description, constructor arguments, required hardware, and formatting the output.
 
 #### 🚀 使用方法 / Usage
@@ -430,16 +420,16 @@ xrobot_mod_parser --path ./Modules
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
-- `--path`, `-p`  
-  **必填**，模块目录路径或模块集合路径。  
+- `--path`, `-p`
+  **必填**，模块目录路径或模块集合路径。
   **Required**. Path to the module directory or module collection.
 
 #### 📤 输出结果 / Output
 
-- 输出模块描述、构造参数和所需硬件信息。  
+- 输出模块描述、构造参数和所需硬件信息。
   Prints the module description, constructor arguments, and required hardware.
   
-- 如果模块头文件中的 `constructor_args` 是字典或列表形式，它会被正确解析并格式化为易读格式。  
+- 如果模块头文件中的 `constructor_args` 是字典或列表形式，它会被正确解析并格式化为易读格式。
   If `constructor_args` in the module header is in dictionary or list format, it is parsed and formatted into a readable structure.
 
 输出示例 / Output Example：
@@ -455,9 +445,11 @@ Constructor Args  :
 Required Hardware : led/LED/led1/LED1
 ```
 
+---
+
 ### `xrobot_setup`
 
-该工具用于自动配置 XRobot 环境，生成模块仓库配置、CMake 配置以及主函数代码。它通过调用 `xrobot_init_mod` 初始化模块，生成 CMake 配置，并根据构造参数自动生成主函数代码。  
+该工具用于自动配置 XRobot 环境，生成模块仓库配置、CMake 配置以及主函数代码。它通过调用 `xrobot_init_mod` 初始化模块，生成 CMake 配置，并根据构造参数自动生成主函数代码。
 This tool automates the XRobot setup, generating module repository configuration, CMake configuration, and main function code. It initializes modules via `xrobot_init_mod`, generates CMake configuration, and automatically generates the main function code based on constructor parameters.
 
 #### 🚀 使用方法 / Usage
@@ -470,26 +462,26 @@ xrobot_setup
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
 
-- `--config`, `-c`  
-  可选，指定构造参数配置文件路径，可以是本地文件或远程 URL。  
+- `--config`, `-c`
+  可选，指定构造参数配置文件路径，可以是本地文件或远程 URL。
   Optional. Path to constructor configuration file, can be a local file or a URL.
 
 #### 📤 输出结果 / Output
 
-- **默认配置文件**：  
-  如果 `Modules/modules.yaml` 不存在，脚本会生成一个默认配置文件。  
+- **默认配置文件**：
+  如果 `Modules/modules.yaml` 不存在，脚本会生成一个默认配置文件。
   If `Modules/modules.yaml` doesn't exist, a default configuration file will be created.
   
-- **模块初始化**：  
-  调用 `xrobot_init_mod` 命令初始化模块仓库，拉取模块代码。  
+- **模块初始化**：
+  调用 `xrobot_init_mod` 命令初始化模块仓库，拉取模块代码。
   Calls `xrobot_init_mod` to initialize the module repository and clone modules.
 
-- **CMake 配置**：  
-  生成 `Modules/CMakeLists.txt`，用于自动包含所有模块的构建配置。  
+- **CMake 配置**：
+  生成 `Modules/CMakeLists.txt`，用于自动包含所有模块的构建配置。
   Generates `Modules/CMakeLists.txt` for auto-including build configurations of all modules.
 
-- **主函数生成**：  
-  生成 `User/xrobot_main.hpp`，包含自动生成的 `XRobotMain()` 函数代码。  
+- **主函数生成**：
+  生成 `User/xrobot_main.hpp`，包含自动生成的 `XRobotMain()` 函数代码。
   Generates `User/xrobot_main.hpp` with the auto-generated `XRobotMain()` function code.
 
 输出示例 / Output Example：
@@ -511,80 +503,178 @@ Modify the configuration and rerun to apply changes
 All done! Main function generated at: ./User/xrobot_main.hpp
 ```
 
+---
+
+### `xrobot_src_man`
+
+该工具用于管理和聚合多个模块源（索引），支持模块仓库的查询、源的增删、模板生成与多源环境下的模块查找。  
+This tool manages and aggregates multiple module sources (indexes), supports module repo querying, adding/removing sources, generating source/index templates, and searching modules across mirrors.
+
+#### 🚀 使用方法 / Usage
+
+```bash
+# 列出所有可用模块
+xrobot_src_man list
+
+# 查询某模块的仓库地址与源
+xrobot_src_man get xrobot-org/BlinkLED
+
+# 查找所有包含某模块的源（支持多源和镜像）
+xrobot_src_man find xrobot-org/BlinkLED
+
+# 生成 sources.yaml 模板
+xrobot_src_man create-sources --output my_sources.yaml
+
+# 添加一个 index.yaml 源到 sources.yaml
+xrobot_src_man add-source https://mydomain.com/index.yaml --priority 1 --sources Modules/sources.yaml
+
+# 生成 index.yaml 模板
+xrobot_src_man create-index --output Modules/index.yaml --namespace myns --mirror-of xrobot-org
+
+# 向 index.yaml 添加模块仓库地址
+xrobot_src_man add-index https://github.com/yourorg/MyModule.git --index Modules/index.yaml
+```
+
+#### 🎛️ 子命令说明 / Subcommands
+
+- `list`  
+  列出所有唯一模块 ID（namespace/ModuleName）及其来源。  
+  List all unique modules (namespace/ModuleName) and their source.
+
+- `get <modid>`  
+  查询指定模块的仓库地址与源信息。  
+  Get repository URL and source info for the given module.
+
+- `find <modid>`  
+  查询所有包含该模块的源（支持多源镜像查找）。  
+  Find all sources containing the module (multi-mirror support).
+
+- `create-sources [--output]`  
+  生成 sources.yaml 模板，支持自定义路径。  
+  Generate a template sources.yaml file (custom path supported).
+
+- `add-source <url> [--priority] [--sources]`  
+  向 sources.yaml 添加一个新的 index.yaml 源，支持优先级。  
+  Add an index.yaml source to sources.yaml with priority.
+
+- `create-index [--output] [--namespace] [--mirror-of]`  
+  生成模块 index.yaml 模板，支持自定义命名空间与镜像配置。  
+  Generate index.yaml template with custom namespace/mirror-of.
+
+- `add-index <repo_url> --index <index.yaml>`  
+  向 index.yaml 添加模块仓库地址。  
+  Add a module repository URL to the specified index.yaml.
+
+#### 📤 输出结果 / Output
+
+- 自动聚合并显示所有模块及其源（支持镜像、优先级与多源管理）。  
+  Aggregates and displays all modules and their sources (mirrors, priority, multi-source supported).
+- 支持标准 yaml 索引文件的模板快速生成与批量维护。  
+  Supports quick generation and batch maintenance of standard yaml index files.
+
+输出示例 / Output Example：
+
+```bash
+Available modules:
+  xrobot-org/BlinkLED               source: https://xrobot-org.github.io/xrobot-modules/index.yaml (actual namespace: xrobot-org)
+  yourns/MyModule                   source: https://mydomain.com/index.yaml (mirror of: xrobot-org) (actual namespace: yourns)
+```
+
+---
+
 ## 🧪 快速上手 / Quickstart
 
 ```bash
-# 1. 初始化模块仓库模板
-# 1. Initialize the module repository template
-$ xrobot_init_mod --config Modules/modules.yaml
-[WARN] Configuration file not found, creating template: Modules\modules.yaml
-[INFO] Please edit the configuration file and rerun this script.
+# 1. 一键初始化环境、拉取模块、生成主函数（推荐）
+# 1. One-click initialize workspace, fetch modules, and generate main function (recommended)
+$ xrobot_setup
+Starting XRobot auto-configuration...
+[INFO] Created default Modules\modules.yaml
+Please edit this file; each line should be a full module name like:
+  - xrobot-org/BlinkLED
+  - your-namespace/YourModule@dev
+[INFO] Created default Modules\sources.yaml
+Please configure sources index.yaml for official or custom/private mirrors.
+Default official source already included.
 
-# 2. 拉取模块仓库
-# 2. Pull module repositories
-$ xrobot_init_mod --config Modules/modules.yaml
-[INFO] Cloning new module: BlinkLED
+$ xrobot_setup
+Starting XRobot auto-configuration...
+[EXEC] xrobot_init_mod --config Modules\modules.yaml --directory Modules --sources Modules\sources.yaml
+[INFO] Cloning new module: xrobot-org/BlinkLED
 Cloning into 'Modules\BlinkLED'...
-remote: Enumerating objects: 19, done.
-remote: Counting objects: 100% (19/19), done.
-remote: Compressing objects: 100% (13/13), done.
-remote: Total 19 (delta 6), reused 19 (delta 6), pack-reused 0 (from 0)
-Receiving objects: 100% (19/19), done.
-Resolving deltas: 100% (6/6), done.
-[SUCCESS] All modules processed
-
-$ mkdir User
-
-# 3. 生成主函数
-# 3. Generate main function
-$ xrobot_gen_main --output User/xrobot_main.hpp
+remote: Enumerating objects: 31, done.
+remote: Counting objects: 100% (31/31), done.
+remote: Compressing objects: 100% (21/21), done.
+remote: Total 31 (delta 10), reused 31 (delta 10), pack-reused 0 (from 0)
+Receiving objects: 100% (31/31), 4.43 KiB | 2.22 MiB/s, done.
+Resolving deltas: 100% (10/10), done.
+[SUCCESS] All modules and their dependencies processed.
+[INFO] Created default Modules/CMakeLists.txt: Modules\CMakeLists.txt
+[EXEC] xrobot_gen_main --output User\xrobot_main.hpp
 Discovered modules: BlinkLED
-[SUCCESS] Generated entry file: User/xrobot_main.hpp
+[INFO] Successfully parsed manifest for BlinkLED
+[INFO] Writing configuration to User\xrobot.yaml
+[SUCCESS] Generated entry file: User\xrobot_main.hpp
 
-# 4. 创建模块
-# 4. Create a module
-$ xrobot_create_mod MySensor --desc "IMU interface module" --hw imu scl sda
+All done! Main function generated at: User\xrobot_main.hpp
+
+# 2. 单独拉取/同步模块仓库（可选）
+# 2. Pull or sync module repositories separately (optional)
+$ xrobot_init_mod --config Modules/modules.yaml --directory Modules
+[INFO] Updating module: xrobot-org/BlinkLED
+Already up to date.
+Already on 'master'
+Your branch is up to date with 'origin/master'.
+[SUCCESS] All modules and their dependencies processed.
+
+# 3. 创建模块
+# 3. Create a module
+$ xrobot_create_mod MySensor --desc "IMU interface module" --hw i2c1
 [OK] Module MySensor generated at Modules\MySensor
 
-# 5. 查看模块信息
-# 5. View module information
-$ xrobot_mod_parser --path .\Modules\MySensor\
+# 4. 查看模块信息
+# 4. View module information
+$ xrobot_mod_parser --path ./Modules/MySensor/
 
-=== Module: MySensor ===
+=== Module: MySensor.hpp ===
 Description       : IMU interface module
 
 Constructor Args  :
-  - name               = your_arg_name_here
+Required Hardware : i2c1
+Depends           : None
 
-Required Hardware : imu scl sda
+# 5. 添加模块仓库（如需自定义来源）
+# 5. Add a module repository (custom source, optional)
+$ xrobot_add_mod your-namespace/YourModule@main
+[SUCCESS] Added repo module 'your-namespace/YourModule@main' to Modules\modules.yaml
 
 # 6. 添加模块实例
 # 6. Add a module instance
 $ xrobot_add_mod MySensor
-[SUCCESS] Appended module instance 'MySensor' to User\xrobot.yaml
+[SUCCESS] Appended module instance 'MySensor' as id 'MySensor_0' to User\xrobot.yaml
 
 # 7. 查看模块实例
 # 7. View module instances
-$ cat .\User\xrobot.yaml
+$ cat ./User/xrobot.yaml
 global_settings:
   monitor_sleep_ms: 1000
 modules:
 - name: BlinkLED
   constructor_args:
     blink_cycle: 250
-- name: MySensor
-  constructor_args:
-    name: your_arg_name_here
+- id: MySensor_0
+  name: MySensor
+  constructor_args: {}
 
-# 8. 重新生成主函数
-# 8. Regenerate main function
+# 8. 重新生成主函数（支持自动扫描和配置）
+# 8. Regenerate main function (auto scan & config supported)
 $ xrobot_gen_main --output User/xrobot_main.hpp
 Discovered modules: BlinkLED, MySensor
 [SUCCESS] Generated entry file: User/xrobot_main.hpp
 
 # 9. 查看主函数
 # 9. View main function
-$ cat .\User\xrobot_main.hpp
+$ cat ./User/xrobot_main.hpp
 #include "app_framework.hpp"
 #include "libxr.hpp"
 
@@ -592,14 +682,13 @@ $ cat .\User\xrobot_main.hpp
 #include "BlinkLED.hpp"
 #include "MySensor.hpp"
 
-template <typename HardwareContainer>
-static void XRobotMain(HardwareContainer &hw) {
+static void XRobotMain(LibXR::HardwareContainer &hw) {
   using namespace LibXR;
   ApplicationManager appmgr;
 
   // Auto-generated module instantiations
-  static BlinkLED<HardwareContainer> blinkled(hw, appmgr, 250);
-  static MySensor<HardwareContainer> mysensor(hw, appmgr, "your_arg_name_here");
+  static BlinkLED blinkled(hw, appmgr, 250);
+  static MySensor MySensor_0(hw, appmgr);
 
   while (true) {
     appmgr.MonitorAll();
@@ -610,120 +699,8 @@ static void XRobotMain(HardwareContainer &hw) {
 
 ---
 
-## 📂 项目结构 / Project Structure
+## 📖 更多信息 / More Information
 
-```text
-C:\Users\xiao\test
-├── Modules/                # 上层功能模块 / High-level functional modules
-│   ├── BlinkLED/           # 示例模块：LED 闪烁 / Example module: LED blinking
-│   │   ├── BlinkLED.hpp    # 模块定义及 manifest / Module header with manifest
-│   │   ├── CMakeLists.txt  # 构建脚本 / Build configuration
-│   │   └── README.md       # 模块说明文档 / Module documentation
-│   └── modules.yaml        # 模块注册列表 / Module registration list
-│
-├── User/                   # 用户生成文件 / User-generated files
-│   ├── xrobot.yaml         # XRobot 配置文件 / XRobot configuration
-│   └── xrobot_main.hpp     # 自动生成主函数 / Auto-generated main entry
-```
-
----
-
-## LibXR / LibXR_CppCodeGenerator / XRobot Relationship
-
-LibXR、LibXR_CppCodeGenerator 与 XRobot 三者形成了一套完整的嵌入式与机器人软件开发体系，分工明确，协同紧密。  
-LibXR, LibXR_CppCodeGenerator and XRobot together form a complete software ecosystem for embedded and robotics development, with clear separation of concerns and tight integration.
-
----
-
-### 🧠 LibXR
-
-**LibXR 是跨平台的驱动抽象与工具库**，支持 STM32、Linux 等平台，包含：  
-LibXR is a cross-platform driver abstraction and utility library supporting STM32, Linux, and more. It provides:
-
-- 通用外设接口封装  
-  Unified peripheral interface abstraction  
-- 嵌入式组件（如 Terminal、PowerManager、Database 等）  
-  Embedded modules like Terminal, PowerManager, Database, etc.  
-- FreeRTOS / bare-metal 支持  
-  FreeRTOS and bare-metal support  
-- 机器人运动学与导航  
-  Kinematics and navigation libraries for robotics  
-- 自动代码生成支持  
-  Code generation support
-
-#### 🔗 Links
-
-- **Repository**: [libxr](https://github.com/Jiu-xiao/libxr)  
-- **API Documentation**: [API](https://jiu-xiao.github.io/libxr/)  
-- **Issues**: [Issue Tracker](https://github.com/Jiu-xiao/libxr/issues)
-
----
-
-### 🔧 LibXR_CppCodeGenerator
-
-**LibXR_CppCodeGenerator 是用于 LibXR 的代码生成工具链**，当前支持 STM32 + CubeMX，未来将扩展至 Zephyr、ESP-IDF 等平台。  
-LibXR_CppCodeGenerator is a code generation toolchain for LibXR. It currently supports STM32 with CubeMX, and is planned to support Zephyr, ESP-IDF, and more.
-
-- 从不同平台的工程文件生成 `.yaml` 配置  
-  Parse project files from different platforms to generate `.yaml` configurations
-- 基于 `.yaml` 自动生成 `app_main.cpp`、中断、CMake 等  
-  Generate `app_main.cpp`, interrupt handlers, and CMake integration  
-- 支持 `XRobot` glue 层集成  
-  Supports optional integration with XRobot framework  
-- 支持用户代码保留与多文件结构  
-  Preserves user code blocks and supports modular output
-
-#### 🔗 Links
-
-- **Repository**: [LibXR_CppCodeGenerator](https://github.com/Jiu-xiao/LibXR_CppCodeGenerator)  
-- **Documentation and Releases**: [PyPI](https://pypi.org/project/libxr/)  
-- **Issues**: [Issue Tracker](https://github.com/Jiu-xiao/LibXR_CppCodeGenerator/issues)
-
----
-
-### 🤖 XRobot
-
-XRobot 是一个轻量级的模块化应用管理框架，专为嵌入式设备而设计。它本身不包含任何驱动或业务代码，专注于模块的注册、调度、生命周期管理、事件处理与参数配置。  
-**XRobot is a lightweight modular application management framework designed for embedded systems.**  
-It does not include any drivers or business logic by itself. Instead, it focuses on module registration, scheduling, lifecycle management, event handling, and parameter configuration.
-
-- 模块注册与生命周期管理  
-  Module registration and lifecycle management  
-- 参数管理 / 配置系统 / 事件系统  
-  Parameter management, configuration system, and event system  
-- ApplicationRunner / ThreadManager 等应用调度器  
-  ApplicationRunner and ThreadManager for runtime coordination  
-- 不直接访问硬件，依赖 LibXR 的 PeripheralManager  
-  Does not access hardware directly, relies on LibXR's PeripheralManager
-
----
-
-#### ✅ Recommended For 推荐使用场景
-
-- 拥有多个子模块（如传感器、通信、控制器）且希望统一管理初始化、调度与资源依赖  
-  For projects with multiple submodules (e.g., sensors, communication, controllers) needing unified lifecycle and dependency management.
-
-- 希望构建平台无关的应用层逻辑，与底层驱动解耦  
-  For building platform-independent application logic decoupled from hardware drivers.
-
-- 与 **LibXR** 结合使用，实现自动注册硬件对象（通过 `HardwareContainer`）  
-  When used with **LibXR**, supports automatic hardware registration via `HardwareContainer`.
-
-- 支持生成模块入口代码、配置逻辑名与硬件名的映射，便于快速适配不同硬件配置  
-  Supports generating module entry code and logical-to-physical hardware name mapping for quick adaptation to different platforms.
-
-#### 🔗 Links
-
-- **Repository**: [XRobot](https://github.com/xrobot-org/XRobot)  
-- **Documentation**: [GitHub Pages](https://xrobot-org.github.io)  
-- **Releases**: [PyPI](https://pypi.org/project/xrobot)  
-- **Issues**: [Issue Tracker](https://github.com/xrobot-org/XRobot/issues)
-
----
-
-## 📄 License
-
-Apache 2.0 License. © xrobot-org authors.
-
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fxrobot-org%2FXRobot?ref=badge_large)
+- [GitHub Repository](https://github.com/xrobot-org/XRobot)
+- [Documentation](https://xrobot-org.github.io)
+- [Issue Tracker](https://github.com/xrobot-org/XRobot/issues)

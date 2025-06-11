@@ -18,7 +18,7 @@ DEFAULT_INDEX = Path("Modules/index.yaml")
 
 def extract_name_from_url(url: str) -> str:
     """
-    Extracts the module name from a repository URL (local or remote).
+    Extract the module name from a repository URL (local or remote).
     """
     name = url.rstrip('/').split('/')[-1]
     if name.endswith('.git'):
@@ -27,7 +27,8 @@ def extract_name_from_url(url: str) -> str:
 
 def load_yaml(source: str | Path) -> dict:
     """
-    Load YAML from a local file or http(s) url. Returns a dict (empty dict if content is empty or not a dict).
+    Load YAML from a local file or http(s) URL.
+    Returns a dict (empty if content is empty or not a dict).
     """
     src = str(source)
     try:
@@ -56,6 +57,7 @@ def save_yaml(path: str | Path, data: dict):
 class ModuleSource:
     """
     Single module source object.
+    Handles one index.yaml (local or remote).
     """
     def __init__(self, url, public_key=None, priority=0):
         self.url = url
@@ -98,7 +100,7 @@ class ModuleSource:
 
     def save_index_yaml(self, path=None):
         """
-        Save index.yaml.
+        Save index.yaml to disk.
         """
         index_data = {"namespace": self.namespace}
         if self.mirror_of:
@@ -109,7 +111,7 @@ class ModuleSource:
     @staticmethod
     def create_index_yaml(path, namespace="your-namespace", mirror_of=None):
         """
-        Create a template index.yaml.
+        Create a template index.yaml file.
         """
         data = {"namespace": namespace, "modules": ["https://github.com/xrobot-org/BlinkLED.git"]}
         if mirror_of:
@@ -136,7 +138,7 @@ class SourceManager:
 
     def load_sources(self, yaml_path: Path | str):
         """
-        Load all sources from sources.yaml and merge.
+        Load all sources from sources.yaml and merge their modules.
         """
         data = load_yaml(yaml_path)
         if not isinstance(data, dict):
@@ -157,7 +159,6 @@ class SourceManager:
         for src in self.sources:
             pns = get_primary_namespace(src)
             for name, repo_url in src.module_name_to_url.items():
-                # Full module ID: primary namespace/ModuleName
                 modid = f"{pns}/{name}"
                 if modid not in self.all_module_candidates:
                     self.all_module_candidates[modid] = []
@@ -175,7 +176,7 @@ class SourceManager:
 
     def get_repo_url(self, modid: str) -> str | None:
         """
-        Return the repository URL for the module.
+        Return the repository URL for the given module.
         """
         return self.module_map.get(modid)
 
@@ -212,7 +213,6 @@ class SourceManager:
         """
         Create a template sources.yaml.
         """
-        # Default to the official repository mirror
         save_yaml(path, {'sources': [
             {
                 "url": "https://xrobot-org.github.io/xrobot-modules/index.yaml",
