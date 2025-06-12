@@ -58,8 +58,8 @@ def parse_manifest_from_header(header_path: Path) -> Dict:
             manifest_data[key] = [{k: v} for k, v in val.items()]
         elif isinstance(val, list):
             manifest_data[key] = [
-                {k: v} if isinstance(item, dict) else {str(item): ""} 
-                for item in val 
+                {k: v} if isinstance(item, dict) else {str(item): ""}
+                for item in val
                 for k, v in (item.items() if isinstance(item, dict) else [(item, "")])
             ]
         elif val is None:
@@ -72,26 +72,29 @@ def parse_manifest_from_header(header_path: Path) -> Dict:
     print(f"[INFO] Successfully parsed manifest for {header_path.stem}")
     return manifest_data
 
-def _format_cpp_value(value: Union[dict, list, str, int, float, bool]) -> str:
+def _format_cpp_value(value: Union[dict, list, str, int, float, bool], key: str = "") -> str:
     """
     Format a value as C++-compliant parameter.
-    Supports @instance references, numbers, identifiers, and strings.
+    Supports numbers, bool, identifiers, @instance, string, nested dict as {a,b,c}, and list as {a,b,c}.
     """
     if isinstance(value, dict):
-        # Single key:value
-        k, v = list(value.items())[0]
-        return _format_cpp_value(v)
+        # 输出为聚合初始化列表，顺序由 yaml/OrderedDict 决定
+        return '{' + ', '.join(_format_cpp_value(v) for v in value.values()) + '}'
     elif isinstance(value, list):
-        return "{" + ", ".join(_format_cpp_value(v) for v in value) + "}"
+        return '{' + ', '.join(_format_cpp_value(v) for v in value) + '}'
     elif isinstance(value, bool):
         return "true" if value else "false"
     elif isinstance(value, str):
+        # @instance 变量
         if value.startswith('@') and re.match(r"^@[A-Za-z_][\w\d_]*$", value):
             return value[1:]
+        # C++ 枚举、作用域名等
         if re.match(r"^[A-Za-z_][\w:<>\s,]*::[A-Za-z_][\w:]*$", value):
             return value
+        # 纯数字
         elif re.match(r"^-?\d+(\.\d+)?$", value):
             return value
+        # 普通字符串
         else:
             return f'"{value}"'
     else:
@@ -225,7 +228,7 @@ def generate_xrobot_main_code(hw_var: str, modules: List[str], config: Dict) -> 
 
         args_dict = entry.get("constructor_args", {})
         if isinstance(args_dict, dict):
-            args_list = [_format_cpp_value(v) for k, v in args_dict.items()]
+            args_list = [_format_cpp_value(v, k) for k, v in args_dict.items()]
         else:
             args_list = []
 
@@ -259,7 +262,7 @@ def auto_discover_modules(modules_dir: Path = Path("Modules")) -> List[str]:
     Returns a list of module names that have their .hpp files.
     """
     discovered_modules = [
-        sub.name for sub in modules_dir.iterdir() 
+        sub.name for sub in modules_dir.iterdir()
         if sub.is_dir() and (sub / f"{sub.name}.hpp").exists()
     ]
     if not discovered_modules:
