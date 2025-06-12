@@ -18,7 +18,8 @@ license = {text = "Apache-2.0"}
 keywords = ["code generation", "embedded systems", "automation"]
 dependencies = [
     "argparse",
-    "pyyaml"
+    "pyyaml",
+    "requests"
 ]
 
 classifiers = [
