@@ -339,7 +339,7 @@ static void XRobotMain(HardwareContainer &hw) {
 
 ### `xrobot_create_mod`
 
-该工具用于快速创建一个符合 XRobot 模块规范的目录结构，包含头文件、README、CMake 配置等，便于模块开发初始化。
+该工具用于快速创建一个符合 XRobot 模块规范的目录结构，包含头文件、README、CMake 配置等，便于模块开发初始化。  
 This tool quickly scaffolds a new XRobot module with standard files including header, README, and CMake setup, to accelerate module development.
 
 #### 🚀 使用方法 / Usage
@@ -347,7 +347,7 @@ This tool quickly scaffolds a new XRobot module with standard files including he
 ```bash
 # 创建一个名为 MyModule 的模块
 # Create a module named MyModule
-xrobot_create_mod MyModule --desc "LED blinker" --hw led button --repo https://github.com/yourorg/MyModule
+xrobot_create_mod MyModule --desc "LED blinker" --hw led button
 ```
 
 #### 🎛️ 命令行参数 / Command-Line Arguments
@@ -376,26 +376,37 @@ xrobot_create_mod MyModule --desc "LED blinker" --hw led button --repo https://g
   依赖模块名列表。可选。  
   List of dependent modules. Optional.
 
-- `--repo`  
-  GitHub 仓库地址（可选）。  
-  GitHub repository URL (optional).
-
 - `--out`  
   输出路径，默认为 `Modules/`。  
   Output folder. Default: `Modules/`.
 
 #### 📂 生成结构 / Generated Structure
 
-假设模块名为 `BlinkLED`，会生成以下文件结构：
+假设模块名为 `BlinkLED`，会生成以下文件结构：  
 If the module name is `BlinkLED`, the following structure will be generated:
 
 ```text
 Modules/
 └── BlinkLED/
+    ├── .github/workflows/build.yml # CI 配置 / CI configuration
     ├── BlinkLED.hpp        # 带 manifest 的头文件 / Header file with manifest
     ├── README.md           # 模块文档 / Module documentation
     └── CMakeLists.txt      # 构建配置 / Build configuration
 ```
+
+## 💡 CI 用途说明 / What is CI for?
+
+生成的模块会包含一个**GitHub Actions**持续集成（CI）配置：  
+- 自动拉取 libxr 依赖并编译模块  
+- 支持每次 push、PR、以及每月定时自动测试
+- CI 失败能及时发现语法或集成问题  
+- 保证你的模块长期可编译、易于合作开发
+
+The generated module includes a GitHub Actions CI workflow that:  
+- Pulls libxr as dependency and builds your module  
+- Runs on every push, pull request, and a monthly schedule
+- Helps catch integration/compile issues automatically  
+- Keeps your module always buildable for you and your team
 
 ---
 

@@ -47,6 +47,15 @@ README_TEMPLATE = """# {class_name}
 
 ## Required Hardware
 {hardware}
+
+## Constructor Arguments
+{constructor_args}
+
+## Template Arguments
+{template_args}
+
+## Depends
+{depends}
 """
 
 GITHUB_ACTIONS_WORKFLOW = """name: XRobot Module Build Test
@@ -217,6 +226,25 @@ def parse_arg(arglist):
             result.append({s.strip(): ""})
     return result
 
+def format_args(args: Optional[List[Dict[str, Any]]]) -> str:
+    """Format constructor or template args as markdown list"""
+    if not args:
+        return "None"
+    lines = []
+    for arg in args:
+        key = list(arg.keys())[0]
+        val = arg[key]
+        if val != "":
+            lines.append(f"- `{key}`: {val}")
+        else:
+            lines.append(f"- `{key}`")
+    return "\n".join(lines)
+
+def format_depends(depends: Optional[List[str]]) -> str:
+    if not depends:
+        return "None"
+    return "\n".join(f"- {dep}" for dep in depends)
+
 def create_module(
     class_name: str,
     description: str,
@@ -247,7 +275,10 @@ def create_module(
     readme_code = README_TEMPLATE.format(
         class_name=class_name,
         description=description,
-        hardware=", ".join(required_hardware) if required_hardware else "None"
+        hardware=", ".join(required_hardware) if required_hardware else "None",
+        constructor_args=format_args(constructor_args),
+        template_args=format_args(template_args),
+        depends=format_depends(depends),
     )
 
     (mod_dir / f"{class_name}.hpp").write_text(hpp_code, encoding="utf-8")
