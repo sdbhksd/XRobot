@@ -9,6 +9,7 @@ xrobot_sync_modules.py - XRobot recursive module synchronization tool.
 Usage:
     python xrobot_sync_modules.py
     python xrobot_sync_modules.py --config Modules/modules.yaml --sources Modules/sources.yaml
+    python xrobot_sync_modules.py --config https://example.com/modules.yaml --sources https://example.com/sources.yaml
 """
 
 import argparse
@@ -16,10 +17,11 @@ import sys
 import subprocess
 import yaml
 import re
+import requests
 from pathlib import Path
 from typing import Optional, Dict, Any, Set, Tuple
 
-# Import your own source management package
+# Import your own source management package (implement load_yaml as shown below if needed)
 from xrobot.SourceManager import SourceManager, load_yaml
 
 CONFIG_TEMPLATE = """# XRobot module configuration example
@@ -30,6 +32,17 @@ modules:
 MODULES_DIR = Path("Modules")
 DEFAULT_CONFIG = MODULES_DIR / "modules.yaml"
 DEFAULT_SOURCES = MODULES_DIR / "sources.yaml"
+
+def is_url(path) -> bool:
+    """Check if a path is an HTTP(S) URL."""
+    return str(path).startswith("http://") or str(path).startswith("https://")
+
+def download_url_to_file(url: str, dest_path: Path):
+    """Download the content of a URL to a local file."""
+    print(f"[INFO] Downloading {url} -> {dest_path}")
+    resp = requests.get(url, timeout=15)
+    resp.raise_for_status()
+    dest_path.write_text(resp.text, encoding="utf-8")
 
 def parse_modid(modid: str) -> Tuple[str, str, Optional[str]]:
     """
@@ -158,19 +171,36 @@ def resolve_and_sync(
 
 def sync_modules_by_config(config_path, sources_path, modules_dir) -> None:
     """
-    Synchronize all modules and their dependencies from a configuration file.
+    Synchronize all modules and their dependencies from a configuration file or URL.
+    If the config or sources is a URL, download to local directory first.
     """
-    config_path = Path(config_path)
-    sources_path = Path(sources_path)
     modules_dir = Path(modules_dir)
     modules_dir.mkdir(parents=True, exist_ok=True)
 
-    if not config_path.exists():
-        print(f"[WARN] Configuration file not found, creating template: {config_path}")
-        config_path.write_text(CONFIG_TEMPLATE, encoding="utf-8")
-        print("[INFO] Please edit the configuration file and rerun this script.")
-        return
+    # Always keep local copies of modules.yaml and sources.yaml in modules_dir
+    if is_url(config_path):
+        local_config_path = modules_dir / "modules.yaml"
+        download_url_to_file(config_path, local_config_path)
+        config_path = local_config_path
+    else:
+        config_path = Path(config_path)
+        if not config_path.exists():
+            print(f"[WARN] Configuration file not found, creating template: {config_path}")
+            config_path.write_text(CONFIG_TEMPLATE, encoding="utf-8")
+            print("[INFO] Please edit the configuration file and rerun this script.")
+            return
 
+    if is_url(sources_path):
+        local_sources_path = modules_dir / "sources.yaml"
+        download_url_to_file(sources_path, local_sources_path)
+        sources_path = local_sources_path
+    else:
+        sources_path = Path(sources_path)
+        if not sources_path.exists():
+            print(f"[ERROR] sources.yaml not found: {sources_path}")
+            return
+
+    # Now always load local files
     config_data = load_yaml(config_path)
     module_ids = config_data.get("modules", [])
     if not module_ids:
@@ -191,9 +221,9 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("--config", "-c", default=DEFAULT_CONFIG,
-                        help="Path to module configuration file")
+                        help="Path or URL to module configuration file (modules.yaml)")
     parser.add_argument("--sources", "-s", default=DEFAULT_SOURCES,
-                        help="Path to sources.yaml for module indexes")
+                        help="Path or URL to sources.yaml for module indexes")
     parser.add_argument("--directory", "-d", default="Modules",
                         help="Output directory for module repositories")
     args = parser.parse_args()

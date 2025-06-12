@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrobot"
-version = "0.2.1"
+version = "0.2.2"
 description = "A lightweight application framework for robot module management, lifecycle control, and hardware abstraction."
 requires-python = ">=3.8"
 authors = [
@@ -18,7 +18,8 @@ license = {text = "Apache-2.0"}
 keywords = ["code generation", "embedded systems", "automation"]
 dependencies = [
     "argparse",
-    "pyyaml"
+    "pyyaml",
+    "requests"
 ]
 
 classifiers = [
