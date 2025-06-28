@@ -86,7 +86,7 @@ def _format_cpp_value(value: Union[dict, list, str, int, float, bool], key: str 
         return "true" if value else "false"
     elif isinstance(value, str):
         # @instance 变量
-        if value.startswith('@') and re.match(r"^@[A-Za-z_][\w\d_]*$", value):
+        if value.startswith('@'):
             return value[1:]
         # C++ 枚举、作用域名等
         if re.match(r"^[A-Za-z_][\w:<>\s,]*::[A-Za-z_][\w:]*$", value):
